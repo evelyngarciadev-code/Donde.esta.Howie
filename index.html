@@ -2,8 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- Permitimos zoom en la pantalla para poder buscar en detalle -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
     <title>Buscando a Howie - Hotel Challenge</title>
+    <!-- Librería de Confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -11,68 +13,100 @@
             margin: 0;
             padding: 0;
             user-select: none;
+            -webkit-user-select: none;
         }
 
-        body {
-            font-family: 'Arial', sans-serif;
+        html, body {
+            width: 100%;
+            height: 100%;
             background-color: #1a1a1a;
             color: #fff;
+            font-family: 'Arial', sans-serif;
             overflow: hidden;
-            height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* Marcador de arriba */
+        /* BARRA SUPERIOR ADAPTABLE */
         #marcador {
-            height: 70px;
+            height: 65px;
             background-color: #2c3e50;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 20px;
-            border-bottom: 4px solid #34495e;
-            z-index: 10;
+            padding: 0 15px;
+            border-bottom: 3px solid #34495e;
+            z-index: 20;
+            flex-shrink: 0;
+        }
+
+        #nivel-actual {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f1c40f;
         }
 
         #timer {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             color: #e74c3c;
             background: #fff;
-            padding: 5px 15px;
+            padding: 4px 12px;
             border-radius: 20px;
+            min-width: 100px;
+            text-align: center;
         }
 
         #objetivos {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            align-items: center;
         }
 
         .objetivo-item {
             background: #34495e;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 16px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             border: 2px solid transparent;
             transition: all 0.3s;
+        }
+
+        .objetivo-item img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
         }
 
         .objetivo-item.encontrado {
             background: #27ae60;
             border-color: #2ecc71;
             text-decoration: line-through;
-            opacity: 0.7;
+            opacity: 0.5;
         }
 
-        /* Contenedor del juego */
+        /* CONTENEDOR DE JUEGO ADAPTABLE A CUALQUIER PANTALLA */
         #zona-juego {
             flex: 1;
             position: relative;
-            background-color: #333;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto; /* Permite hacer scroll al hacer zoom */
+            touch-action: manipulation;
+        }
+
+        #wrapper-mapa {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: calc(100vh - 65px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -81,29 +115,30 @@
         #imagen-fondo {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Ajusta la imagen a la tablet sin deformar */
-            position: relative;
+            object-fit: contain; /* Adapta sin deformar en horizontal o vertical */
+            display: block;
         }
 
-        /* Cajas invisibles (los objetivos escondidos) */
+        /* ZONAS CLICKABLES INVISIBLES */
         .click-target {
             position: absolute;
-            width: 45px;  /* Ajustá el tamaño del área interactiva según necesites */
-            height: 45px; 
-            background: rgba(255, 0, 0, 0.4); /* Totalmente transparente, cambialo a 0.4 para testear */
+            width: 50px; 
+            height: 50px; 
+            background: rgba(255, 0, 0, 0); /* Cambiar a 0.4 para ver los círculos rojos al calibrar */
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
+            z-index: 5;
         }
 
-        /* Pantallas superpuestas (Modales) */
+        /* MODALES Y OVERLAYS */
         .pantalla-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.88);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -121,8 +156,8 @@
             background-color: #27ae60;
             color: white;
             border: none;
-            padding: 15px 35px;
-            font-size: 20px;
+            padding: 14px 30px;
+            font-size: 18px;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
@@ -137,12 +172,22 @@
 
         .btn-reiniciar { background-color: #e74c3c; }
 
-        h1 { font-size: 40px; margin-bottom: 10px; color: #f1c40f; }
-        p { font-size: 18px; margin-bottom: 10px; }
+        h1 { font-size: 36px; margin-bottom: 10px; color: #f1c40f; }
+        p { font-size: 16px; margin-bottom: 10px; }
+
+        /* Ajustes responsivos para pantallas chicas / teléfonos verticales */
+        @media (max-width: 600px) {
+            #marcador { height: 60px; padding: 0 8px; }
+            #nivel-actual { font-size: 13px; }
+            #timer { font-size: 16px; min-width: 75px; padding: 3px 8px; }
+            .objetivo-item { padding: 2px 6px; font-size: 12px; }
+            .objetivo-item img { width: 24px; height: 24px; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- MENÚ DE INICIO -->
     <div id="pantalla-inicio" class="pantalla-overlay">
         <h1>¡Buscando a Howie!</h1>
         <p>Encontrá a Howie y los objetos perdidos en el hotel antes de que se acabe el tiempo.</p>
@@ -150,37 +195,42 @@
         <button class="btn" onclick="iniciarJuego()">¡Empezar a Jugar!</button>
     </div>
 
+    <!-- MARCADOR SUPERIOR -->
     <div id="marcador">
-        <div id="nivel-actual" style="font-size: 18px; font-weight: bold;">Nivel: 1/3</div>
-        <div id="objetivos">
-            </div>
+        <div id="nivel-actual">Nivel: 1/3</div>
+        <div id="objetivos"></div>
         <div id="timer">Tiempo: 45</div>
     </div>
 
+    <!-- ZONA DEL MAPA DE BÚSQUEDA -->
     <div id="zona-juego">
-        <img id="imagen-fondo" src="" alt="Mapa de búsqueda">
-        <div id="contenedor-objetos"></div>
+        <div id="wrapper-mapa">
+            <img id="imagen-fondo" src="" alt="Mapa de búsqueda">
+            <div id="contenedor-objetos"></div>
+        </div>
     </div>
 
+    <!-- PANTALLA SIGUIENTE NIVEL -->
     <div id="pantalla-siguiente" class="pantalla-overlay oculto">
         <h1>¡Excelente!</h1>
         <p>Encontraste todo a tiempo.</p>
         <button class="btn" onclick="cargarNivelSiguiente()">Siguiente Nivel</button>
     </div>
 
+    <!-- PANTALLA PERDISTE -->
     <div id="pantalla-perdiste" class="pantalla-overlay oculto">
         <h1 style="color: #e74c3c;">¡Se acabó el tiempo!</h1>
         <p>Estuviste cerca, ¡volvé a intentarlo!</p>
         <button class="btn btn-reiniciar" onclick="reiniciarJuego()">Intentar de nuevo</button>
-        
-        <span onclick="reiniciarTodoElJuegoDesdePerdiste()" style="margin-top: 30px; font-size: 14px; color: #aaa; text-decoration: underline; cursor: pointer; display: inline-block;">
+        <span onclick="reiniciarTodoElJuegoDesdePerdiste()" style="margin-top: 25px; font-size: 14px; color: #aaa; text-decoration: underline; cursor: pointer; display: inline-block;">
             Volver al menú de inicio
         </span>
     </div>
 
+    <!-- PANTALLA JUEGO GANADO -->
     <div id="pantalla-ganaste" class="pantalla-overlay oculto">
         <h1 style="color: #2ecc71;">¡SOS UN EXPERTO! 🎉</h1>
-        <p style="font-size: 24px;">Lograste superar todos los niveles.</p>
+        <p style="font-size: 22px;">Lograste superar todos los niveles.</p>
         <div style="background: #2c3e50; padding: 20px; border-radius: 15px; margin: 20px 0; border: 3px dashed #f1c40f;">
             <h2 style="color: #f1c40f; margin-bottom: 5px;">🏆 ¡RECLAMÁ TU PREMIO! 🏆</h2>
             <p>Mostrale esta pantalla al staff del Stand para llevarte tu recompensa instantánea.</p>
@@ -190,12 +240,12 @@
 
     <script>
         // CONFIGURACIÓN DE LOS NIVELES
-        // Modificá el 'top' y 'left' (en porcentaje %) para ubicar cada cosa sobre tu dibujo
+        // IMPORTANTE: Verificá los nombres de las rutas de tus iconos dentro de la carpeta img/
         const configuracionNiveles = [
             {
                 nivel: 1,
-                imagen: "img/nivel1.png", // Tu imagen animada del hotel para el nivel 1
-                tiempo: 45,           // Tiempo en segundos para este nivel
+                imagen: "img/nivel1.jpg", 
+                tiempo: 45,
                 objetos: [
                     { id: "howie", nombre: "Howie", icono: "img/icono_howie.png", top: "40%", left: "35%", encontrado: false },
                     { id: "objeto1", nombre: "Llave", icono: "img/icono_llave.png", top: "20%", left: "70%", encontrado: false },
@@ -237,29 +287,35 @@
 
         function cargarNivel(index) {
             let datosNivel = configuracionNiveles[index];
-            
-            // Resetear estados de objetos encontrados
-            datosNivel.objects = datosNivel.objetos.forEach(obj => obj.encontrado = false);
+            datosNivel.objetos.forEach(obj => obj.encontrado = false);
 
-            // Actualizar interfaz superior
             document.getElementById("nivel-actual").innerText = `Nivel: ${datosNivel.nivel}/3`;
             document.getElementById("imagen-fondo").src = datosNivel.imagen;
             
             tiempoRestante = datosNivel.tiempo;
             document.getElementById("timer").innerText = `Tiempo: ${tiempoRestante}`;
 
-            // Renderizar la lista visual de objetivos
+            // Cargar los iconos en el marcador superior
             const contenedorObjetivos = document.getElementById("objetivos");
             contenedorObjetivos.innerHTML = "";
             datosNivel.objetos.forEach(obj => {
                 let div = document.createElement("div");
                 div.id = `ui-${obj.id}`;
                 div.className = "objetivo-item";
-                div.innerText = obj.nombre;
+                
+                let img = document.createElement("img");
+                img.src = obj.icono;
+                img.alt = obj.nombre;
+                
+                let span = document.createElement("span");
+                span.innerText = obj.nombre;
+
+                div.appendChild(img);
+                div.appendChild(span);
                 contenedorObjetivos.appendChild(div);
             });
 
-            // Colocar los botones interactivos e invisibles sobre la imagen
+            // Colocar los botones clicables invisibles sobre la imagen
             const contenedorObjetos = document.getElementById("contenedor-objetos");
             contenedorObjetos.innerHTML = "";
             datosNivel.objetos.forEach(obj => {
@@ -268,16 +324,14 @@
                 divTarget.style.top = obj.top;
                 divTarget.style.left = obj.left;
                 
-                // Acción al tocar el objeto oculto
                 divTarget.addEventListener("click", (e) => {
-                    e.stopPropagation(); // Evita clicks molestos
+                    e.stopPropagation();
                     marcarComoEncontrado(obj.id);
                 });
 
                 contenedorObjetos.appendChild(divTarget);
             });
 
-            // Arrancar el cronómetro
             juegoActivo = true;
             clearInterval(intervaloTimer);
             intervaloTimer = setInterval(actualizarTimer, 1000);
@@ -301,21 +355,16 @@
 
             if (obj && !obj.encontrado) {
                 obj.encontrado = true;
-                
-                // Tacharlo visualmente arriba
                 document.getElementById(`ui-${id}`).classList.add("encontrado");
 
-                // Verificar si encontramos todos los de este nivel
                 let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
                 if (todosEncontrados) {
                     juegoActivo = false;
                     clearInterval(intervaloTimer);
                     
-                    // Si pasamos el nivel 3 (el index 2) ganamos todo el juego
                     if (nivelActualIndex === configuracionNiveles.length - 1) {
                         pantallaVictoriaFinal();
                     } else {
-                        // Sino, pasamos al cartel de siguiente nivel
                         document.getElementById("pantalla-siguiente").classList.remove("oculto");
                     }
                 }
@@ -336,7 +385,7 @@
 
         function reiniciarJuego() {
             document.getElementById("pantalla-perdiste").classList.add("oculto");
-            cargarNivel(nivelActualIndex); // Reinicia el mismo nivel en el que estaba
+            cargarNivel(nivelActualIndex);
         }
 
         function reiniciarTodoElJuegoDesdePerdiste() {
@@ -347,7 +396,6 @@
         function pantallaVictoriaFinal() {
             document.getElementById("pantalla-ganaste").classList.remove("oculto");
             
-            // Efecto de Confeti de celebración automática para la tablet
             var duration = 4 * 1000;
             var end = Date.now() + duration;
 
