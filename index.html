@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Bloqueamos el zoom global de la página para que la barra de arriba NO se agrande -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Buscando a Howie - Hotel Challenge</title>
     <!-- Librería de Confeti -->
@@ -27,7 +26,7 @@
             flex-direction: column;
         }
 
-        /* BARRA SUPERIOR BLINDA (JAMÁS SE AGRANDA) */
+        /* BARRA SUPERIOR FIJA QUE NUNCA SE AGRANDA */
         #marcador {
             height: 70px;
             background-color: #2c3e50;
@@ -93,32 +92,52 @@
             opacity: 0.5;
         }
 
-        /* CONTENEDOR DEL JUEGO CON SCROLL PARA LA IMAGEN */
+        /* CONTENEDOR PRINCIPAL CON SCROLL AUTOMÁTICO */
         #zona-juego {
             flex: 1;
             position: relative;
             background-color: #111;
-            overflow: auto; /* Permite arrastrar la imagen cuando está grande */
+            overflow: auto; /* Permite scroll total sin recortes */
             -webkit-overflow-scrolling: touch;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
-        #wrapper-mapa {
-            position: relative;
-            transform-origin: center center;
-            transition: transform 0.2s ease-out;
+        #contenedor-scroll {
+            min-width: 100%;
+            min-height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 10px;
+            width: max-content;
+            height: max-content;
+            margin: 0 auto;
+        }
+
+        /* CAPA DEL MAPA QUE CRECE AL HACER ZOOM */
+        #capa-interactiva {
+            position: relative;
+            width: 100%;
+            max-width: 100vw;
+            transition: width 0.2s ease-out;
+            display: inline-block;
         }
 
         #imagen-fondo {
-            max-width: 100vw;
-            max-height: calc(100vh - 70px);
+            width: 100%;
+            height: auto;
+            max-height: calc(100vh - 85px);
             object-fit: contain;
             display: block;
+            border-radius: 6px;
+        }
+
+        #contenedor-objetos {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
         /* BOTONES DE ZOOM FLOTANTES */
@@ -157,10 +176,11 @@
             position: absolute;
             width: 55px; 
             height: 55px; 
-            background: rgba(255, 0, 0, 0); /* Ponelo en 0.4 para calibrar */
+            background: rgba(255, 0.4, 0.4, 0.4); /* Ponelo en 0.4 para ver los círculos rojos mientras calibrás */
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
+            pointer-events: auto;
             z-index: 10;
         }
 
@@ -206,7 +226,7 @@
             #timer { font-size: 16px; min-width: 75px; padding: 3px 8px; }
             .objetivo-item { padding: 3px 6px; font-size: 12px; }
             .objetivo-item img { width: 26px; height: 26px; }
-            #imagen-fondo { max-height: calc(100vh - 60px); }
+            #imagen-fondo { max-height: calc(100vh - 75px); }
         }
     </style>
 </head>
@@ -229,16 +249,18 @@
 
     <!-- ZONA DE BÚSQUEDA -->
     <div id="zona-juego">
-        <div id="wrapper-mapa">
-            <img id="imagen-fondo" src="" alt="Mapa de búsqueda">
-            <div id="contenedor-objetos"></div>
+        <div id="contenedor-scroll">
+            <div id="capa-interactiva">
+                <img id="imagen-fondo" src="" alt="Mapa de búsqueda">
+                <div id="contenedor-objetos"></div>
+            </div>
         </div>
     </div>
 
-    <!-- CONTROLES DE ZOOM SÓLO PARA LA IMAGEN -->
+    <!-- CONTROLES DE ZOOM PARA LA IMAGEN -->
     <div id="controles-zoom">
-        <div class="btn-zoom" onclick="cambiarZoom(0.35)">+</div>
-        <div class="btn-zoom" onclick="cambiarZoom(-0.35)">-</div>
+        <div class="btn-zoom" onclick="cambiarZoom(0.4)">+</div>
+        <div class="btn-zoom" onclick="cambiarZoom(-0.4)">-</div>
     </div>
 
     <!-- PANTALLA SIGUIENTE NIVEL -->
@@ -312,15 +334,29 @@
         function cambiarZoom(delta) {
             escalaActual += delta;
             if (escalaActual < 1) escalaActual = 1;
-            if (escalaActual > 3) escalaActual = 3; // Límite de zoom x3
-            
-            const wrapper = document.getElementById("wrapper-mapa");
-            wrapper.style.transform = `scale(${escalaActual})`;
+            if (escalaActual > 2.5) escalaActual = 2.5; // Límite de zoom x2.5
+
+            const capa = document.getElementById("capa-interactiva");
+            const img = document.getElementById("imagen-fondo");
+
+            if (escalaActual === 1) {
+                capa.style.width = "100%";
+                capa.style.maxWidth = "100vw";
+                img.style.maxHeight = "calc(100vh - 85px)";
+            } else {
+                capa.style.maxWidth = "none";
+                img.style.maxHeight = "none";
+                capa.style.width = `${escalaActual * 100}vw`;
+            }
         }
 
         function resetearZoom() {
             escalaActual = 1;
-            document.getElementById("wrapper-mapa").style.transform = "scale(1)";
+            const capa = document.getElementById("capa-interactiva");
+            const img = document.getElementById("imagen-fondo");
+            capa.style.width = "100%";
+            capa.style.maxWidth = "100vw";
+            img.style.maxHeight = "calc(100vh - 85px)";
         }
 
         function iniciarJuego() {
@@ -463,7 +499,7 @@
         }
 
         function reiniciarTodoElJuego() {
-            document.getElementById("pantalla-ganaste").classList.add("oculto");
+            document.getElementById("pantalla-ganaste").classList.remove("oculto");
             document.getElementById("pantalla-inicio").classList.remove("oculto");
         }
     </script>
