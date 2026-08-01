@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Buscando a Howie - Hotel Challenge</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Marcador de arriba */
+        #marcador {
+            height: 70px;
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 4px solid #34495e;
+            z-index: 10;
+        }
+
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            background: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        #objetivos {
+            display: flex;
+            gap: 15px;
+        }
+
+        .objetivo-item {
+            background: #34495e;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .objetivo-item.encontrado {
+            background: #27ae60;
+            border-color: #2ecc71;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        /* Contenedor del juego */
+        #zona-juego {
+            flex: 1;
+            position: relative;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #imagen-fondo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ajusta la imagen a la tablet sin deformar */
+            position: relative;
+        }
+
+        /* Cajas invisibles (los objetivos escondidos) */
+        .click-target {
+            position: absolute;
+            width: 45px;  /* Ajustá el tamaño del área interactiva según necesites */
+            height: 45px; 
+            background: rgba(255, 0, 0, 0.4); /* Totalmente transparente, cambialo a 0.4 para testear */
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Pantallas superpuestas (Modales) */
+        .pantalla-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .oculto {
+            display: none !important;
+        }
+
+        .btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-reiniciar { background-color: #e74c3c; }
+
+        h1 { font-size: 40px; margin-bottom: 10px; color: #f1c40f; }
+        p { font-size: 18px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="pantalla-inicio" class="pantalla-overlay">
+        <h1>¡Buscando a Howie!</h1>
+        <p>Encontrá a Howie y los objetos perdidos en el hotel antes de que se acabe el tiempo.</p>
+        <p>Son 3 niveles. ¿Estás listo?</p>
+        <button class="btn" onclick="iniciarJuego()">¡Empezar a Jugar!</button>
+    </div>
+
+    <div id="marcador">
+        <div id="nivel-actual" style="font-size: 18px; font-weight: bold;">Nivel: 1/3</div>
+        <div id="objetivos">
+            </div>
+        <div id="timer">Tiempo: 45</div>
+    </div>
+
+    <div id="zona-juego">
+        <img id="imagen-fondo" src="" alt="Mapa de búsqueda">
+        <div id="contenedor-objetos"></div>
+    </div>
+
+    <div id="pantalla-siguiente" class="pantalla-overlay oculto">
+        <h1>¡Excelente!</h1>
+        <p>Encontraste todo a tiempo.</p>
+        <button class="btn" onclick="cargarNivelSiguiente()">Siguiente Nivel</button>
+    </div>
+
+    <div id="pantalla-perdiste" class="pantalla-overlay oculto">
+        <h1 style="color: #e74c3c;">¡Se acabó el tiempo!</h1>
+        <p>Estuviste cerca, ¡volvé a intentarlo!</p>
+        <button class="btn btn-reiniciar" onclick="reiniciarJuego()">Intentar de nuevo</button>
+        
+        <span onclick="reiniciarTodoElJuegoDesdePerdiste()" style="margin-top: 30px; font-size: 14px; color: #aaa; text-decoration: underline; cursor: pointer; display: inline-block;">
+            Volver al menú de inicio
+        </span>
+    </div>
+
+    <div id="pantalla-ganaste" class="pantalla-overlay oculto">
+        <h1 style="color: #2ecc71;">¡SOS UN EXPERTO! 🎉</h1>
+        <p style="font-size: 24px;">Lograste superar todos los niveles.</p>
+        <div style="background: #2c3e50; padding: 20px; border-radius: 15px; margin: 20px 0; border: 3px dashed #f1c40f;">
+            <h2 style="color: #f1c40f; margin-bottom: 5px;">🏆 ¡RECLAMÁ TU PREMIO! 🏆</h2>
+            <p>Mostrale esta pantalla al staff del Stand para llevarte tu recompensa instantánea.</p>
+        </div>
+        <button class="btn btn-reiniciar" onclick="reiniciarTodoElJuego()">Volver al Inicio</button>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE LOS NIVELES
+        // Modificá el 'top' y 'left' (en porcentaje %) para ubicar cada cosa sobre tu dibujo
+        const configuracionNiveles = [
+            {
+                nivel: 1,
+                imagen: "nivel1.png", // Tu imagen animada del hotel para el nivel 1
+                tiempo: 45,           // Tiempo en segundos para este nivel
+                objetos: [
+                    { id: "howie", nombre: "🦉 Howie", top: "40%", left: "35%", encontrado: false },
+                    { id: "objeto1", nombre: "🔑 Llave", top: "20%", left: "70%", encontrado: false },
+                    { id: "objeto2", nombre: "🧳 Valija", top: "75%", left: "50%", encontrado: false }
+                ]
+            },
+            {
+                nivel: 2,
+                imagen: "nivel2.png", 
+                tiempo: 40, 
+                objetos: [
+                    { id: "howie", nombre: "🦉 Howie", top: "60%", left: "80%", encontrado: false },
+                    { id: "objeto1", nombre: "🍸 Trago", top: "30%", left: "20%", encontrado: false },
+                    { id: "objeto2", nombre: "🛏️ Almohada", top: "15%", left: "55%", encontrado: false }
+                ]
+            },
+            {
+                nivel: 3,
+                imagen: "nivel3.png", 
+                tiempo: 35, // Menos tiempo para aumentar la dificultad
+                objetos: [
+                    { id: "howie", nombre: "🦉 Howie", top: "15%", left: "45%", encontrado: false },
+                    { id: "objeto1", nombre: "☕ Taza", top: "85%", left: "15%", encontrado: false },
+                    { id: "objeto2", nombre: "🏊 Salvavidas", top: "50%", left: "65%", encontrado: false }
+                ]
+            }
+        ];
+
+        let nivelActualIndex = 0;
+        let tiempoRestante = 0;
+        let intervaloTimer = null;
+        let juegoActivo = false;
+
+        function iniciarJuego() {
+            document.getElementById("pantalla-inicio").classList.add("oculto");
+            nivelActualIndex = 0;
+            cargarNivel(nivelActualIndex);
+        }
+
+        function cargarNivel(index) {
+            let datosNivel = configuracionNiveles[index];
+            
+            // Resetear estados de objetos encontrados
+            datosNivel.objects = datosNivel.objetos.forEach(obj => obj.encontrado = false);
+
+            // Actualizar interfaz superior
+            document.getElementById("nivel-actual").innerText = `Nivel: ${datosNivel.nivel}/3`;
+            document.getElementById("imagen-fondo").src = datosNivel.imagen;
+            
+            tiempoRestante = datosNivel.tiempo;
+            document.getElementById("timer").innerText = `Tiempo: ${tiempoRestante}`;
+
+            // Renderizar la lista visual de objetivos
+            const contenedorObjetivos = document.getElementById("objetivos");
+            contenedorObjetivos.innerHTML = "";
+            datosNivel.objetos.forEach(obj => {
+                let div = document.createElement("div");
+                div.id = `ui-${obj.id}`;
+                div.className = "objetivo-item";
+                div.innerText = obj.nombre;
+                contenedorObjetivos.appendChild(div);
+            });
+
+            // Colocar los botones interactivos e invisibles sobre la imagen
+            const contenedorObjetos = document.getElementById("contenedor-objetos");
+            contenedorObjetos.innerHTML = "";
+            datosNivel.objetos.forEach(obj => {
+                let divTarget = document.createElement("div");
+                divTarget.className = "click-target";
+                divTarget.style.top = obj.top;
+                divTarget.style.left = obj.left;
+                
+                // Acción al tocar el objeto oculto
+                divTarget.addEventListener("click", (e) => {
+                    e.stopPropagation(); // Evita clicks molestos
+                    marcarComoEncontrado(obj.id);
+                });
+
+                contenedorObjetos.appendChild(divTarget);
+            });
+
+            // Arrancar el cronómetro
+            juegoActivo = true;
+            clearInterval(intervaloTimer);
+            intervaloTimer = setInterval(actualizarTimer, 1000);
+        }
+
+        function actualizarTimer() {
+            if (!juegoActivo) return;
+            tiempoRestante--;
+            document.getElementById("timer").innerText = `Tiempo: ${tiempoRestante}`;
+
+            if (tiempoRestante <= 0) {
+                finalizarNivelPorTiempo();
+            }
+        }
+
+        function marcarComoEncontrado(id) {
+            if (!juegoActivo) return;
+            
+            let datosNivel = configuracionNiveles[nivelActualIndex];
+            let obj = datosNivel.objetos.find(o => o.id === id);
+
+            if (obj && !obj.encontrado) {
+                obj.encontrado = true;
+                
+                // Tacharlo visualmente arriba
+                document.getElementById(`ui-${id}`).classList.add("encontrado");
+
+                // Verificar si encontramos todos los de este nivel
+                let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
+                if (todosEncontrados) {
+                    juegoActivo = false;
+                    clearInterval(intervaloTimer);
+                    
+                    // Si pasamos el nivel 3 (el index 2) ganamos todo el juego
+                    if (nivelActualIndex === configuracionNiveles.length - 1) {
+                        pantallaVictoriaFinal();
+                    } else {
+                        // Sino, pasamos al cartel de siguiente nivel
+                        document.getElementById("pantalla-siguiente").classList.remove("oculto");
+                    }
+                }
+            }
+        }
+
+        function cargarNivelSiguiente() {
+            document.getElementById("pantalla-siguiente").classList.add("oculto");
+            nivelActualIndex++;
+            cargarNivel(nivelActualIndex);
+        }
+
+        function finalizarNivelPorTiempo() {
+            juegoActivo = false;
+            clearInterval(intervaloTimer);
+            document.getElementById("pantalla-perdiste").classList.remove("oculto");
+        }
+
+        function reiniciarJuego() {
+            document.getElementById("pantalla-perdiste").classList.add("oculto");
+            cargarNivel(nivelActualIndex); // Reinicia el mismo nivel en el que estaba
+        }
+
+        function reiniciarTodoElJuegoDesdePerdiste() {
+            document.getElementById("pantalla-perdiste").classList.add("oculto");
+            document.getElementById("pantalla-inicio").classList.remove("oculto");
+        }
+
+        function pantallaVictoriaFinal() {
+            document.getElementById("pantalla-ganaste").classList.remove("oculto");
+            
+            // Efecto de Confeti de celebración automática para la tablet
+            var duration = 4 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        function reiniciarTodoElJuego() {
+            document.getElementById("pantalla-ganaste").classList.add("oculto");
+            document.getElementById("pantalla-inicio").classList.remove("oculto");
+        }
+    </script>
+</body>
+</html>
