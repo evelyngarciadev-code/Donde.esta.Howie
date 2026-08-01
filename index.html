@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Permitimos zoom de la página si es necesario, pero fijamos la estructura visual -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+    <!-- Bloqueamos el zoom global de la página para que la barra de arriba NO se agrande -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Buscando a Howie - Hotel Challenge</title>
     <!-- Librería de Confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -22,12 +22,12 @@
             background-color: #1a1a1a;
             color: #fff;
             font-family: 'Arial', sans-serif;
-            overflow: hidden; /* Mantiene la pantalla general fija sin scrollbars globales */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        /* BARRA SUPERIOR FIJA QUE NUNCA SE MUEVE NI HACE ZOOM */
+        /* BARRA SUPERIOR BLINDA (JAMÁS SE AGRANDA) */
         #marcador {
             height: 70px;
             background-color: #2c3e50;
@@ -36,7 +36,7 @@
             align-items: center;
             padding: 0 15px;
             border-bottom: 3px solid #34495e;
-            z-index: 50; /* Queda siempre por encima de la imagen al hacer zoom */
+            z-index: 50;
             flex-shrink: 0;
             position: relative;
         }
@@ -93,35 +93,63 @@
             opacity: 0.5;
         }
 
-        /* ZONA INTERACTIVA CON SCROLL INDEPENDIENTE PARA LA IMAGEN */
+        /* CONTENEDOR DEL JUEGO CON SCROLL PARA LA IMAGEN */
         #zona-juego {
             flex: 1;
             position: relative;
             background-color: #111;
-            overflow: auto; /* Habilita mover la imagen con el dedo cuando se agrande */
+            overflow: auto; /* Permite arrastrar la imagen cuando está grande */
             -webkit-overflow-scrolling: touch;
             display: flex;
             justify-content: center;
             align-items: center;
-            touch-action: pan-x pan-y pinch-zoom; /* Permite pinch zoom solo en esta área */
         }
 
         #wrapper-mapa {
             position: relative;
-            width: 100%;
-            height: 100%;
+            transform-origin: center center;
+            transition: transform 0.2s ease-out;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-width: 100%;
-            min-height: 100%;
         }
 
         #imagen-fondo {
-            width: 100%;
-            height: 100%;
+            max-width: 100vw;
+            max-height: calc(100vh - 70px);
             object-fit: contain;
             display: block;
+        }
+
+        /* BOTONES DE ZOOM FLOTANTES */
+        #controles-zoom {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 60;
+        }
+
+        .btn-zoom {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f1c40f;
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: bold;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .btn-zoom:active {
+            transform: scale(0.9);
         }
 
         /* ZONAS CLICKABLES INVISIBLES */
@@ -129,14 +157,14 @@
             position: absolute;
             width: 55px; 
             height: 55px; 
-            background: rgba(255, 0.4, 0.4, 0.4); /* Cambiá a 0.4 para ver los círculos rojos mientras testeás */
+            background: rgba(255, 0, 0, 0); /* Ponelo en 0.4 para calibrar */
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
             z-index: 10;
         }
 
-        /* MODALES Y OVERLAYS */
+        /* MODALES */
         .pantalla-overlay {
             position: fixed;
             top: 0;
@@ -153,9 +181,7 @@
             padding: 20px;
         }
 
-        .oculto {
-            display: none !important;
-        }
+        .oculto { display: none !important; }
 
         .btn {
             background-color: #27ae60;
@@ -168,15 +194,9 @@
             cursor: pointer;
             margin-top: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
-        }
-
-        .btn:active {
-            transform: scale(0.95);
         }
 
         .btn-reiniciar { background-color: #e74c3c; }
-
         h1 { font-size: 36px; margin-bottom: 10px; color: #f1c40f; }
         p { font-size: 16px; margin-bottom: 10px; }
 
@@ -186,6 +206,7 @@
             #timer { font-size: 16px; min-width: 75px; padding: 3px 8px; }
             .objetivo-item { padding: 3px 6px; font-size: 12px; }
             .objetivo-item img { width: 26px; height: 26px; }
+            #imagen-fondo { max-height: calc(100vh - 60px); }
         }
     </style>
 </head>
@@ -199,19 +220,25 @@
         <button class="btn" onclick="iniciarJuego()">¡Empezar a Jugar!</button>
     </div>
 
-    <!-- MARCADOR SUPERIOR SIEMPRE FIJO -->
+    <!-- MARCADOR SUPERIOR -->
     <div id="marcador">
         <div id="nivel-actual">Nivel: 1/3</div>
         <div id="objetivos"></div>
         <div id="timer">Tiempo: 45</div>
     </div>
 
-    <!-- ZONA INTERACTIVA DEL MAPA -->
+    <!-- ZONA DE BÚSQUEDA -->
     <div id="zona-juego">
         <div id="wrapper-mapa">
             <img id="imagen-fondo" src="" alt="Mapa de búsqueda">
             <div id="contenedor-objetos"></div>
         </div>
+    </div>
+
+    <!-- CONTROLES DE ZOOM SÓLO PARA LA IMAGEN -->
+    <div id="controles-zoom">
+        <div class="btn-zoom" onclick="cambiarZoom(0.35)">+</div>
+        <div class="btn-zoom" onclick="cambiarZoom(-0.35)">-</div>
     </div>
 
     <!-- PANTALLA SIGUIENTE NIVEL -->
@@ -226,7 +253,7 @@
         <h1 style="color: #e74c3c;">¡Se acabó el tiempo!</h1>
         <p>Estuviste cerca, ¡volvé a intentarlo!</p>
         <button class="btn btn-reiniciar" onclick="reiniciarJuego()">Intentar de nuevo</button>
-        <span onclick="reiniciarTodoElJuegoDesdePerdiste()" style="margin-top: 25px; font-size: 14px; color: #aaa; text-decoration: underline; cursor: pointer; display: inline-block;">
+        <span onclick="reiniciarTodoElJuegoDesdePerdiste()" style="margin-top: 25px; font-size: 14px; color: #aaa; text-decoration: underline; cursor: pointer;">
             Volver al menú de inicio
         </span>
     </div>
@@ -280,6 +307,21 @@
         let tiempoRestante = 0;
         let intervaloTimer = null;
         let juegoActivo = false;
+        let escalaActual = 1;
+
+        function cambiarZoom(delta) {
+            escalaActual += delta;
+            if (escalaActual < 1) escalaActual = 1;
+            if (escalaActual > 3) escalaActual = 3; // Límite de zoom x3
+            
+            const wrapper = document.getElementById("wrapper-mapa");
+            wrapper.style.transform = `scale(${escalaActual})`;
+        }
+
+        function resetearZoom() {
+            escalaActual = 1;
+            document.getElementById("wrapper-mapa").style.transform = "scale(1)";
+        }
 
         function iniciarJuego() {
             document.getElementById("pantalla-inicio").classList.add("oculto");
@@ -288,6 +330,7 @@
         }
 
         function cargarNivel(index) {
+            resetearZoom();
             let datosNivel = configuracionNiveles[index];
             datosNivel.objetos.forEach(obj => obj.encontrado = false);
 
@@ -297,12 +340,6 @@
             tiempoRestante = datosNivel.tiempo;
             document.getElementById("timer").innerText = `Tiempo: ${tiempoRestante}`;
 
-            // Resetear el scroll del área de juego al inicio de cada nivel
-            const zonaJuego = document.getElementById("zona-juego");
-            zonaJuego.scrollTop = 0;
-            zonaJuego.scrollLeft = 0;
-
-            // Renderizar la barra de objetivos superior
             const contenedorObjetivos = document.getElementById("objetivos");
             contenedorObjetivos.innerHTML = "";
             datosNivel.objetos.forEach(obj => {
@@ -322,7 +359,6 @@
                 contenedorObjetivos.appendChild(div);
             });
 
-            // Colocar los objetivos invisibles sobre la imagen
             const contenedorObjetos = document.getElementById("contenedor-objetos");
             contenedorObjetos.innerHTML = "";
             datosNivel.objetos.forEach(obj => {
@@ -427,7 +463,7 @@
         }
 
         function reiniciarTodoElJuego() {
-            document.getElementById("pantalla-ganaste").classList.remove("oculto");
+            document.getElementById("pantalla-ganaste").classList.add("oculto");
             document.getElementById("pantalla-inicio").classList.remove("oculto");
         }
     </script>
