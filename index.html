@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Buscando a Howie - Hotel Challenge</title>
-    <!-- Librería de Confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -26,62 +25,71 @@
             flex-direction: column;
         }
 
-        /* BARRA SUPERIOR FIJA QUE NUNCA SE AGRANDA */
+        /* BARRA SUPERIOR FIJA Y BLINDADA */
         #marcador {
-            height: 70px;
+            height: 65px;
             background-color: #2c3e50;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 15px;
+            padding: 0 10px;
             border-bottom: 3px solid #34495e;
             z-index: 50;
             flex-shrink: 0;
-            position: relative;
+            width: 100%;
+            gap: 5px;
         }
 
         #nivel-actual {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: #f1c40f;
+            flex-shrink: 0; /* IMPIDE QUE SE CORTE O EMPUJE */
+            white-space: nowrap;
         }
 
         #timer {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #e74c3c;
             background: #fff;
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            min-width: 100px;
+            flex-shrink: 0; /* IMPIDE QUE SE SALGA DE PANTALLA */
+            white-space: nowrap;
             text-align: center;
         }
 
         #objetivos {
             display: flex;
-            gap: 12px;
+            gap: 6px;
             align-items: center;
+            overflow-x: auto; /* Si no entra todo en pantallas chicas, se puede deslizar de costado */
+            max-width: 60vw;
+            padding: 2px 0;
         }
 
         .objetivo-item {
             background: #34495e;
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             border: 2px solid transparent;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .objetivo-item img {
-            width: 35px;
-            height: 35px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
             display: inline-block;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 5px;
             padding: 2px;
         }
 
@@ -92,12 +100,12 @@
             opacity: 0.5;
         }
 
-        /* CONTENEDOR PRINCIPAL CON SCROLL AUTOMÁTICO */
+        /* CONTENEDOR DE BÚSQUEDA CON SCROLL CONTINUO */
         #zona-juego {
             flex: 1;
             position: relative;
             background-color: #111;
-            overflow: auto; /* Permite scroll total sin recortes */
+            overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -107,25 +115,25 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 10px;
+            padding: 5px;
             width: max-content;
             height: max-content;
             margin: 0 auto;
         }
 
-        /* CAPA DEL MAPA QUE CRECE AL HACER ZOOM */
         #capa-interactiva {
             position: relative;
             width: 100%;
             max-width: 100vw;
-            transition: width 0.2s ease-out;
             display: inline-block;
+            transform-origin: center center;
+            transition: transform 0.2s ease-out;
         }
 
         #imagen-fondo {
             width: 100%;
             height: auto;
-            max-height: calc(100vh - 85px);
+            max-height: calc(100vh - 75px);
             object-fit: contain;
             display: block;
             border-radius: 6px;
@@ -143,21 +151,21 @@
         /* BOTONES DE ZOOM FLOTANTES */
         #controles-zoom {
             position: fixed;
-            bottom: 25px;
-            right: 25px;
+            bottom: 20px;
+            right: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             z-index: 60;
         }
 
         .btn-zoom {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             background-color: #f1c40f;
             color: #2c3e50;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             border: 3px solid #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
@@ -174,9 +182,9 @@
         /* ZONAS CLICKABLES INVISIBLES */
         .click-target {
             position: absolute;
-            width: 20px; 
-            height: 20px; 
-            background: rgba(255, 0.4, 0.4, 0.4); /* Ponelo en 0.4 para ver los círculos rojos mientras calibrás */
+            width: 55px; 
+            height: 55px; 
+            background: rgba(255, 0, 0, 0); /* Cambiar a 0.4 para ver los círculos rojos mientras calibrás */
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
@@ -217,22 +225,21 @@
         }
 
         .btn-reiniciar { background-color: #e74c3c; }
-        h1 { font-size: 36px; margin-bottom: 10px; color: #f1c40f; }
+        h1 { font-size: 34px; margin-bottom: 10px; color: #f1c40f; }
         p { font-size: 16px; margin-bottom: 10px; }
 
         @media (max-width: 600px) {
-            #marcador { height: 60px; padding: 0 8px; }
-            #nivel-actual { font-size: 13px; }
-            #timer { font-size: 16px; min-width: 75px; padding: 3px 8px; }
-            .objetivo-item { padding: 3px 6px; font-size: 12px; }
-            .objetivo-item img { width: 26px; height: 26px; }
-            #imagen-fondo { max-height: calc(100vh - 75px); }
+            #marcador { height: 60px; padding: 0 6px; }
+            #nivel-actual { font-size: 12px; }
+            #timer { font-size: 15px; padding: 3px 6px; }
+            .objetivo-item { padding: 2px 5px; font-size: 11px; }
+            .objetivo-item img { width: 22px; height: 22px; }
+            #imagen-fondo { max-height: calc(100vh - 70px); }
         }
     </style>
 </head>
 <body>
 
-    <!-- MENÚ DE INICIO -->
     <div id="pantalla-inicio" class="pantalla-overlay">
         <h1>¡Buscando a Howie!</h1>
         <p>Encontrá a Howie y los objetos perdidos en el hotel antes de que se acabe el tiempo.</p>
@@ -240,14 +247,12 @@
         <button class="btn" onclick="iniciarJuego()">¡Empezar a Jugar!</button>
     </div>
 
-    <!-- MARCADOR SUPERIOR -->
     <div id="marcador">
         <div id="nivel-actual">Nivel: 1/3</div>
         <div id="objetivos"></div>
         <div id="timer">Tiempo: 45</div>
     </div>
 
-    <!-- ZONA DE BÚSQUEDA -->
     <div id="zona-juego">
         <div id="contenedor-scroll">
             <div id="capa-interactiva">
@@ -257,20 +262,17 @@
         </div>
     </div>
 
-    <!-- CONTROLES DE ZOOM PARA LA IMAGEN -->
     <div id="controles-zoom">
-        <div class="btn-zoom" onclick="cambiarZoom(0.4)">+</div>
-        <div class="btn-zoom" onclick="cambiarZoom(-0.4)">-</div>
+        <div class="btn-zoom" onclick="cambiarZoom(0.35)">+</div>
+        <div class="btn-zoom" onclick="cambiarZoom(-0.35)">-</div>
     </div>
 
-    <!-- PANTALLA SIGUIENTE NIVEL -->
     <div id="pantalla-siguiente" class="pantalla-overlay oculto">
         <h1>¡Excelente!</h1>
         <p>Encontraste todo a tiempo.</p>
         <button class="btn" onclick="cargarNivelSiguiente()">Siguiente Nivel</button>
     </div>
 
-    <!-- PANTALLA PERDISTE -->
     <div id="pantalla-perdiste" class="pantalla-overlay oculto">
         <h1 style="color: #e74c3c;">¡Se acabó el tiempo!</h1>
         <p>Estuviste cerca, ¡volvé a intentarlo!</p>
@@ -280,7 +282,6 @@
         </span>
     </div>
 
-    <!-- PANTALLA JUEGO GANADO -->
     <div id="pantalla-ganaste" class="pantalla-overlay oculto">
         <h1 style="color: #2ecc71;">¡SOS UN EXPERTO! 🎉</h1>
         <p style="font-size: 22px;">Lograste superar todos los niveles.</p>
@@ -298,9 +299,9 @@
                 imagen: "img/nivel1.png", 
                 tiempo: 45,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "46%", left: "63%", encontrado: false },
-                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "76%", left: "33%", encontrado: false },
-                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "50%", left: "27%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
+                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
+                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
                 ]
             },
             {
@@ -308,9 +309,9 @@
                 imagen: "img/nivel2.png", 
                 tiempo: 40,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "6.5%", encontrado: false },
-                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "75%", left: "46%", encontrado: false },
-                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "86%", left: "28%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
+                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
+                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
                 ]
             },
             {
@@ -318,9 +319,9 @@
                 imagen: "img/nivel3.png", 
                 tiempo: 35,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "80%", left: "88%", encontrado: false },
-                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "28%", left: "29%", encontrado: false },
-                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "38%", left: "76%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
+                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
+                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
                 ]
             }
         ];
@@ -331,32 +332,33 @@
         let juegoActivo = false;
         let escalaActual = 1;
 
+        // PRECARGA DE TODAS LAS IMÁGENES AL INICIAR PARA QUE NO HAYA LAG/DEMORA ENTRE NIVELES
+        function precargarImagenes() {
+            configuracionNiveles.forEach(nivel => {
+                let imgNivel = new Image();
+                imgNivel.src = nivel.imagen;
+                nivel.objetos.forEach(obj => {
+                    let imgIcono = new Image();
+                    imgIcono.src = obj.icono;
+                });
+            });
+        }
+        precargarImagenes();
+
         function cambiarZoom(delta) {
             escalaActual += delta;
             if (escalaActual < 1) escalaActual = 1;
-            if (escalaActual > 2.5) escalaActual = 2.5; // Límite de zoom x2.5
+            if (escalaActual > 2.5) escalaActual = 2.5;
 
             const capa = document.getElementById("capa-interactiva");
-            const img = document.getElementById("imagen-fondo");
-
-            if (escalaActual === 1) {
-                capa.style.width = "100%";
-                capa.style.maxWidth = "100vw";
-                img.style.maxHeight = "calc(100vh - 85px)";
-            } else {
-                capa.style.maxWidth = "none";
-                img.style.maxHeight = "none";
-                capa.style.width = `${escalaActual * 100}vw`;
-            }
+            capa.style.transform = `scale(${escalaActual})`;
+            capa.style.transformOrigin = "top left"; // Mantiene el punto de zoom estable
         }
 
         function resetearZoom() {
             escalaActual = 1;
             const capa = document.getElementById("capa-interactiva");
-            const img = document.getElementById("imagen-fondo");
-            capa.style.width = "100%";
-            capa.style.maxWidth = "100vw";
-            img.style.maxHeight = "calc(100vh - 85px)";
+            capa.style.transform = "scale(1)";
         }
 
         function iniciarJuego() {
