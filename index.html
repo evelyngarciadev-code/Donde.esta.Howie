@@ -25,7 +25,7 @@
             flex-direction: column;
         }
 
-        /* BARRA SUPERIOR ULTRA MINIMALISTA Y PROLIJA */
+        /* BARRA SUPERIOR FIJA Y COMPACTA */
         #marcador {
             height: 60px;
             background-color: #1e272e;
@@ -40,7 +40,7 @@
             gap: 6px;
         }
 
-        /* NIVEL COMPACTO (EJ: 1/3) */
+        /* NIVEL COMPACTO */
         #nivel-actual {
             font-size: 13px;
             font-weight: 800;
@@ -52,7 +52,7 @@
             white-space: nowrap;
         }
 
-        /* CRONÓMETRO SOLO NÚMERO Y RELOJ */
+        /* CRONÓMETRO */
         #timer {
             font-size: 16px;
             font-weight: bold;
@@ -67,7 +67,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* LISTA CENTRAL CON MÁXIMO ESPACIO */
+        /* LISTA CENTRAL DE OBJETIVOS */
         #objetivos {
             display: flex;
             gap: 8px;
@@ -93,6 +93,8 @@
             transition: all 0.2s ease;
             white-space: nowrap;
             flex-shrink: 0;
+            cursor: pointer;
+            touch-action: manipulation;
         }
 
         .objetivo-item img {
@@ -103,6 +105,7 @@
             background-color: #ffffff;
             border-radius: 50%;
             padding: 2px;
+            pointer-events: none;
         }
 
         .objetivo-item.encontrado {
@@ -112,7 +115,39 @@
             opacity: 0.4;
         }
 
-        /* CONTENEDOR DE BÚSQUEDA CON SCROLL CONTINUO */
+        /* VISTA FLOTANTE DE LUPA (CUANDO MANTENÉS PRESIONADO EL ICONO) */
+        #lupa-preview {
+            position: fixed;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 110px;
+            height: 110px;
+            background-color: #ffffff;
+            border: 4px solid #f1c40f;
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.15s ease;
+        }
+
+        #lupa-preview.activa {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        #lupa-preview img {
+            width: 85px;
+            height: 85px;
+            object-fit: contain;
+        }
+
+        /* CONTENEDOR DE BÚSQUEDA CON SCROLL */
         #zona-juego {
             flex: 1;
             position: relative;
@@ -194,8 +229,8 @@
         /* ZONAS CLICKABLES INVISIBLES */
         .click-target {
             position: absolute;
-            width: 25px; 
-            height: 25px; 
+            width: 22px; 
+            height: 22px; 
             background: rgba(255, 0.4, 0.4, 0.4); /* Cambiar a 0.4 si querés calibrar los puntos rojos */
             border-radius: 50%;
             cursor: pointer;
@@ -264,6 +299,10 @@
         <div id="nivel-actual">1/3</div>
         <div id="objetivos"></div>
         <div id="timer">⏱️ 45</div>
+    </div>
+
+    <div id="lupa-preview">
+        <img id="lupa-img" src="" alt="Icono Lupa">
     </div>
 
     <div id="zona-juego">
@@ -339,23 +378,28 @@
             }
         ];
 
+
         let nivelActualIndex = 0;
         let tiempoRestante = 0;
         let intervaloTimer = null;
         let juegoActivo = false;
         let escalaActual = 1;
         
-        // CONTROL DE CONFETI
         let animacionConfetiReq = null;
         let lanzandoConfeti = false;
 
+        // PRECARGA ULTRA REFORZADA EN MEMORIA RAM
+        window.cacheImagenes = [];
         function precargarImagenes() {
             configuracionNiveles.forEach(nivel => {
                 let imgNivel = new Image();
                 imgNivel.src = nivel.imagen;
+                window.cacheImagenes.push(imgNivel);
+
                 nivel.objetos.forEach(obj => {
                     let imgIcono = new Image();
                     imgIcono.src = obj.icono;
+                    window.cacheImagenes.push(imgIcono);
                 });
             });
         }
@@ -409,6 +453,25 @@
 
                 div.appendChild(img);
                 div.appendChild(span);
+
+                // EFECTO LUPA AL MANTENER APRETADO EL ICONO
+                const activarLupa = (e) => {
+                    e.preventDefault();
+                    document.getElementById("lupa-img").src = obj.icono;
+                    document.getElementById("lupa-preview").classList.add("activa");
+                };
+
+                const desactivarLupa = () => {
+                    document.getElementById("lupa-preview").classList.remove("activa");
+                };
+
+                div.addEventListener("touchstart", activarLupa, { passive: false });
+                div.addEventListener("touchend", desactivarLupa);
+                div.addEventListener("touchcancel", desactivarLupa);
+                div.addEventListener("mousedown", activarLupa);
+                div.addEventListener("mouseup", desactivarLupa);
+                div.addEventListener("mouseleave", desactivarLupa);
+
                 contenedorObjetivos.appendChild(div);
             });
 
@@ -520,7 +583,6 @@
             }());
         }
 
-        // DETIENE EL CONFETI INMEDIATAMENTE
         function detenerConfeti() {
             lanzandoConfeti = false;
             if (animacionConfetiReq) {
@@ -528,12 +590,12 @@
                 animacionConfetiReq = null;
             }
             if (typeof confetti !== "undefined" && confetti.reset) {
-                confetti.reset(); // Limpia los papelitos en pantalla al instante
+                confetti.reset();
             }
         }
 
         function reiniciarTodoElJuego() {
-            detenerConfeti(); // Frene de confeti al instante
+            detenerConfeti();
             document.getElementById("pantalla-ganaste").classList.add("oculto");
             document.getElementById("pantalla-inicio").classList.remove("oculto");
         }
