@@ -17,81 +17,91 @@
         html, body {
             width: 100%;
             height: 100%;
-            background-color: #1a1a1a;
+            background-color: #111;
             color: #fff;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        /* BARRA SUPERIOR ESTRUCTURADA EN 3 ZONAS PARA EVITAR SUPERPOSICIONES */
+        /* BARRA SUPERIOR ULTRA MINIMALISTA Y PROLIJA */
         #marcador {
-            height: 65px;
-            background-color: #2c3e50;
+            height: 60px;
+            background-color: #1e272e;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 10px;
-            border-bottom: 3px solid #34495e;
+            border-bottom: 2px solid #34495e;
             z-index: 50;
             flex-shrink: 0;
             width: 100%;
-            gap: 8px;
+            gap: 6px;
         }
 
+        /* NIVEL COMPACTO (EJ: 1/3) */
         #nivel-actual {
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 800;
             color: #f1c40f;
+            background-color: #2c3e50;
+            padding: 4px 8px;
+            border-radius: 12px;
             flex-shrink: 0;
             white-space: nowrap;
         }
 
+        /* CRONÓMETRO SOLO NÚMERO Y RELOJ */
         #timer {
             font-size: 16px;
             font-weight: bold;
-            color: #e74c3c;
-            background: #fff;
-            padding: 5px 10px;
+            color: #d63031;
+            background: #ffffff;
+            padding: 4px 10px;
             border-radius: 20px;
             flex-shrink: 0;
             white-space: nowrap;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
+        /* LISTA CENTRAL CON MÁXIMO ESPACIO */
         #objetivos {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
             justify-content: center;
-            flex: 1; /* Ocupa solo el espacio central disponible */
-            overflow-x: auto; /* Permite scroll horizontal en el centro si la pantalla es chica */
+            flex: 1;
+            overflow-x: auto;
             padding: 2px 0;
             -webkit-overflow-scrolling: touch;
         }
 
+        /* CÁPSULAS DE OBJETOS BÚSQUEDA */
         .objetivo-item {
-            background: #34495e;
-            padding: 3px 8px;
-            border-radius: 10px;
+            background: #2c3e50;
+            padding: 3px 8px 3px 4px;
+            border-radius: 20px;
             font-size: 12px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 5px;
-            border: 2px solid transparent;
-            transition: all 0.2s;
+            gap: 6px;
+            border: 1px solid #485460;
+            transition: all 0.2s ease;
             white-space: nowrap;
             flex-shrink: 0;
         }
 
         .objetivo-item img {
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
             display: inline-block;
-            background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 5px;
+            background-color: #ffffff;
+            border-radius: 50%;
             padding: 2px;
         }
 
@@ -99,14 +109,14 @@
             background: #27ae60;
             border-color: #2ecc71;
             text-decoration: line-through;
-            opacity: 0.5;
+            opacity: 0.4;
         }
 
         /* CONTENEDOR DE BÚSQUEDA CON SCROLL CONTINUO */
         #zona-juego {
             flex: 1;
             position: relative;
-            background-color: #111;
+            background-color: #000;
             overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -135,10 +145,10 @@
         #imagen-fondo {
             width: 100%;
             height: auto;
-            max-height: calc(100vh - 75px);
+            max-height: calc(100vh - 70px);
             object-fit: contain;
             display: block;
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
         #contenedor-objetos {
@@ -162,14 +172,14 @@
         }
 
         .btn-zoom {
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             background-color: #f1c40f;
             color: #2c3e50;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: bold;
-            border: 3px solid #fff;
+            border: 2px solid #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             display: flex;
             justify-content: center;
@@ -186,7 +196,7 @@
             position: absolute;
             width: 55px; 
             height: 55px; 
-            background: rgba(255, 0, 0, 0); /* Cambiar a 0.4 para calibrar las zonas rojas */
+            background: rgba(255, 0, 0, 0); /* Cambiar a 0.4 si querés calibrar los puntos rojos */
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
@@ -201,7 +211,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.88);
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -228,16 +238,16 @@
 
         .btn:active { transform: scale(0.95); }
         .btn-reiniciar { background-color: #e74c3c; }
-        h1 { font-size: 34px; margin-bottom: 10px; color: #f1c40f; }
+        h1 { font-size: 32px; margin-bottom: 10px; color: #f1c40f; }
         p { font-size: 16px; margin-bottom: 10px; }
 
         @media (max-width: 600px) {
-            #marcador { height: 58px; padding: 0 6px; }
-            #nivel-actual { font-size: 12px; }
-            #timer { font-size: 14px; padding: 3px 6px; }
-            .objetivo-item { padding: 2px 5px; font-size: 11px; }
+            #marcador { height: 54px; padding: 0 6px; }
+            #nivel-actual { font-size: 11px; padding: 3px 6px; }
+            #timer { font-size: 14px; padding: 3px 8px; }
+            .objetivo-item { padding: 2px 6px 2px 3px; font-size: 11px; }
             .objetivo-item img { width: 22px; height: 22px; }
-            #imagen-fondo { max-height: calc(100vh - 68px); }
+            #imagen-fondo { max-height: calc(100vh - 64px); }
         }
     </style>
 </head>
@@ -251,9 +261,9 @@
     </div>
 
     <div id="marcador">
-        <div id="nivel-actual">Nivel: 1/3</div>
+        <div id="nivel-actual">1/3</div>
         <div id="objetivos"></div>
-        <div id="timer">45</div>
+        <div id="timer">⏱️ 45</div>
     </div>
 
     <div id="zona-juego">
@@ -287,7 +297,7 @@
 
     <div id="pantalla-ganaste" class="pantalla-overlay oculto">
         <h1 style="color: #2ecc71;">¡SOS UN EXPERTO! 🎉</h1>
-        <p style="font-size: 22px;">Lograste superar todos los niveles.</p>
+        <p style="font-size: 20px;">Lograste superar todos los niveles.</p>
         <div style="background: #2c3e50; padding: 20px; border-radius: 15px; margin: 20px 0; border: 3px dashed #f1c40f;">
             <h2 style="color: #f1c40f; margin-bottom: 5px;">🏆 ¡RECLAMÁ TU PREMIO! 🏆</h2>
             <p>Mostrale esta pantalla al staff del Stand para llevarte tu recompensa instantánea.</p>
@@ -302,9 +312,9 @@
                 imagen: "img/nivel1.png", 
                 tiempo: 45,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "46%", left: "63%", encontrado: false },
-                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "76%", left: "33%", encontrado: false },
-                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "50%", left: "27%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
+                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
+                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
                 ]
             },
             {
@@ -312,9 +322,9 @@
                 imagen: "img/nivel2.png", 
                 tiempo: 40,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "6.5%", encontrado: false },
-                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "75%", left: "46%", encontrado: false },
-                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "86%", left: "28%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
+                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
+                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
                 ]
             },
             {
@@ -322,9 +332,9 @@
                 imagen: "img/nivel3.png", 
                 tiempo: 35,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "80%", left: "88%", encontrado: false },
-                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "28%", left: "29%", encontrado: false },
-                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "38%", left: "76%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
+                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
+                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
                 ]
             }
         ];
@@ -335,7 +345,6 @@
         let juegoActivo = false;
         let escalaActual = 1;
 
-        // PRECARGA DE IMÁGENES AL ARRANCAR
         function precargarImagenes() {
             configuracionNiveles.forEach(nivel => {
                 let imgNivel = new Image();
@@ -374,11 +383,11 @@
             let datosNivel = configuracionNiveles[index];
             datosNivel.objetos.forEach(obj => obj.encontrado = false);
 
-            document.getElementById("nivel-actual").innerText = `Nivel: ${datosNivel.nivel}/3`;
+            document.getElementById("nivel-actual").innerText = `${datosNivel.nivel}/3`;
             document.getElementById("imagen-fondo").src = datosNivel.imagen;
             
             tiempoRestante = datosNivel.tiempo;
-            document.getElementById("timer").innerText = `Tiempo: ${tiempoRestante}`;
+            document.getElementById("timer").innerText = `⏱️ ${tiempoRestante}`;
 
             const contenedorObjetivos = document.getElementById("objetivos");
             contenedorObjetivos.innerHTML = "";
@@ -423,7 +432,7 @@
         function actualizarTimer() {
             if (!juegoActivo) return;
             tiempoRestante--;
-            document.getElementById("timer").innerText = `Tiempo: ${tiempoRestante}`;
+            document.getElementById("timer").innerText = `⏱️ ${tiempoRestante}`;
 
             if (tiempoRestante <= 0) {
                 finalizarNivelPorTiempo();
@@ -503,7 +512,6 @@
         }
 
         function reiniciarTodoElJuego() {
-            // CORREGIDO: Ocultamos la pantalla de ganaste para volver al inicio
             document.getElementById("pantalla-ganaste").classList.add("oculto");
             document.getElementById("pantalla-inicio").classList.remove("oculto");
         }
