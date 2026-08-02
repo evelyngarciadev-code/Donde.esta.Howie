@@ -194,8 +194,8 @@
         /* ZONAS CLICKABLES INVISIBLES */
         .click-target {
             position: absolute;
-            width: 35px; 
-            height: 35px; 
+            width: 25px; 
+            height: 25px; 
             background: rgba(255, 0.4, 0.4, 0.4); /* Cambiar a 0.4 si querés calibrar los puntos rojos */
             border-radius: 50%;
             cursor: pointer;
@@ -344,6 +344,10 @@
         let intervaloTimer = null;
         let juegoActivo = false;
         let escalaActual = 1;
+        
+        // CONTROL DE CONFETI
+        let animacionConfetiReq = null;
+        let lanzandoConfeti = false;
 
         function precargarImagenes() {
             configuracionNiveles.forEach(nivel => {
@@ -490,8 +494,11 @@
             
             var duration = 4 * 1000;
             var end = Date.now() + duration;
+            lanzandoConfeti = true;
 
             (function frame() {
+                if (!lanzandoConfeti) return;
+
                 confetti({
                     particleCount: 5,
                     angle: 60,
@@ -505,13 +512,28 @@
                     origin: { x: 1 }
                 });
 
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
+                if (Date.now() < end && lanzandoConfeti) {
+                    animacionConfetiReq = requestAnimationFrame(frame);
+                } else {
+                    lanzandoConfeti = false;
                 }
             }());
         }
 
+        // DETIENE EL CONFETI INMEDIATAMENTE
+        function detenerConfeti() {
+            lanzandoConfeti = false;
+            if (animacionConfetiReq) {
+                cancelAnimationFrame(animacionConfetiReq);
+                animacionConfetiReq = null;
+            }
+            if (typeof confetti !== "undefined" && confetti.reset) {
+                confetti.reset(); // Limpia los papelitos en pantalla al instante
+            }
+        }
+
         function reiniciarTodoElJuego() {
+            detenerConfeti(); // Frene de confeti al instante
             document.getElementById("pantalla-ganaste").classList.add("oculto");
             document.getElementById("pantalla-inicio").classList.remove("oculto");
         }
