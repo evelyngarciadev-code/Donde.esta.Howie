@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Buscando a Howie - Hotel Challenge</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -147,7 +150,7 @@
             object-fit: contain;
         }
 
-        /* CONTENEDOR DE BÚSQUEDA CON ALINEACIÓN EXACTA */
+        /* CONTENEDOR DE BÚSQUEDA */
         #zona-juego {
             flex: 1;
             position: relative;
@@ -166,7 +169,6 @@
             margin: auto;
         }
 
-        /* LA CAPA INTERACTIVA ADAPTA SU TAMAÑO EXACTO A LA IMAGEN */
         #capa-interactiva {
             position: relative;
             display: inline-block;
@@ -175,7 +177,6 @@
             transition: transform 0.2s ease-out;
         }
 
-        /* LA IMAGEN SE ESCALA MANTENIENDO RELACIÓN DE ASPECTO RECURSIVA */
         #imagen-fondo {
             display: block;
             width: auto;
@@ -360,9 +361,9 @@
                 imagen: "img/nivel2.png", 
                 tiempo: 40,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "50%", left: "50%", encontrado: false },
-                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "70%", left: "90%", encontrado: false },
-                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "80%", left: "20%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "45%", left: "55%", encontrado: false },
+                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "65%", left: "85%", encontrado: false },
+                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "70%", left: "25%", encontrado: false }
                 ]
             },
             {
@@ -403,6 +404,18 @@
         }
         precargarImagenes();
 
+        // FUNCIÓN DE PANTALLA COMPLETA NATIVA
+        function activarPantallaCompleta() {
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) { /* Safari / iOS */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+
         function cambiarZoom(delta) {
             escalaActual += delta;
             if (escalaActual < 1) escalaActual = 1;
@@ -419,6 +432,7 @@
         }
 
         function iniciarJuego() {
+            activarPantallaCompleta(); // Se activa al tocar 'Empezar'
             document.getElementById("pantalla-inicio").classList.add("oculto");
             nivelActualIndex = 0;
             cargarNivel(nivelActualIndex);
