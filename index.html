@@ -226,17 +226,33 @@
             transform: scale(0.9);
         }
 
-        /* ZONAS CLICKABLES INVISIBLES */
+        /* ZONAS CLICKABLES INVISIBLES Y SU EFECTO VERDE AL ENCONTRAR */
         .click-target {
             position: absolute;
-            width: 22px; 
-            height: 22px; 
-            background: rgba(255, 0, 0, 0); /* Cambiar a 0.4 si querés calibrar los puntos rojos */
+            width: 55px; 
+            height: 55px; 
+            background: rgba(255, 0, 0, 0);
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
             pointer-events: auto;
             z-index: 10;
+            transition: all 0.25s ease-in-out;
+        }
+
+        /* CÍRCULO ILUMINADO AL ENCONTRAR EL OBJETO EN EL MAPA */
+        .click-target.encontrado {
+            border: 4px solid #2ecc71;
+            background: rgba(46, 204, 113, 0.35);
+            box-shadow: 0 0 15px #2ecc71, inset 0 0 10px rgba(46, 204, 113, 0.5);
+            pointer-events: none; /* Bloquea el objeto ya hallado */
+            animation: latidoEncontrado 0.4s ease-out;
+        }
+
+        @keyframes latidoEncontrado {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
         /* MODALES */
@@ -351,9 +367,9 @@
                 imagen: "img/nivel1.png", 
                 tiempo: 45,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "46%", left: "63%", encontrado: false },
-                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "76%", left: "33%", encontrado: false },
-                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "50%", left: "27%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
+                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
+                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
                 ]
             },
             {
@@ -361,19 +377,19 @@
                 imagen: "img/nivel2.png", 
                 tiempo: 40,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "48%", left: "53%", encontrado: false },
-                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "60%", left: "89%", encontrado: false },
-                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "66%", left: "24%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
+                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
+                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
                 ]
             },
             {
                 nivel: 3,
                 imagen: "img/nivel3.png", 
-                tiempo: 40,
+                tiempo: 35,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "80%", left: "88%", encontrado: false },
-                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "28%", left: "29%", encontrado: false },
-                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "38%", left: "76%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
+                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
+                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
                 ]
             }
         ];
@@ -404,14 +420,13 @@
         }
         precargarImagenes();
 
-        // FUNCIÓN DE PANTALLA COMPLETA NATIVA
         function activarPantallaCompleta() {
             let elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(err => console.log(err));
-            } else if (elem.webkitRequestFullscreen) { /* Safari / iOS */
+            } else if (elem.webkitRequestFullscreen) {
                 elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
+            } else if (elem.msRequestFullscreen) {
                 elem.msRequestFullscreen();
             }
         }
@@ -432,7 +447,7 @@
         }
 
         function iniciarJuego() {
-            activarPantallaCompleta(); // Se activa al tocar 'Empezar'
+            activarPantallaCompleta();
             document.getElementById("pantalla-inicio").classList.add("oculto");
             nivelActualIndex = 0;
             cargarNivel(nivelActualIndex);
@@ -491,6 +506,7 @@
             contenedorObjetos.innerHTML = "";
             datosNivel.objetos.forEach(obj => {
                 let divTarget = document.createElement("div");
+                divTarget.id = `target-${obj.id}`; // Identificador para marcarlo en el mapa
                 divTarget.className = "click-target";
                 divTarget.style.top = obj.top;
                 divTarget.style.left = obj.left;
@@ -526,7 +542,15 @@
 
             if (obj && !obj.encontrado) {
                 obj.encontrado = true;
+                
+                // Tachamos de la lista superior
                 document.getElementById(`ui-${id}`).classList.add("encontrado");
+                
+                // DIBUJAMOS EL CÍRCULO VERDE ILUMINADO EN EL MAPA SOBRE EL OBJETO
+                const targetMapa = document.getElementById(`target-${id}`);
+                if (targetMapa) {
+                    targetMapa.classList.add("encontrado");
+                }
 
                 let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
                 if (todosEncontrados) {
