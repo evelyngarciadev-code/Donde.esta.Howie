@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Meta-etiquetas para pantalla completa en móviles y tablets -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -45,7 +44,6 @@
             gap: 6px;
         }
 
-        /* NIVEL COMPACTO */
         #nivel-actual {
             font-size: 13px;
             font-weight: 800;
@@ -57,7 +55,6 @@
             white-space: nowrap;
         }
 
-        /* CRONÓMETRO */
         #timer {
             font-size: 16px;
             font-weight: bold;
@@ -72,7 +69,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* LISTA CENTRAL DE OBJETIVOS */
         #objetivos {
             display: flex;
             gap: 8px;
@@ -84,7 +80,6 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* CÁPSULAS DE OBJETOS BÚSQUEDA */
         .objetivo-item {
             background: #2c3e50;
             padding: 3px 8px 3px 4px;
@@ -120,7 +115,6 @@
             opacity: 0.4;
         }
 
-        /* VISTA FLOTANTE DE LUPA */
         #lupa-preview {
             position: fixed;
             top: 75px;
@@ -152,7 +146,6 @@
             object-fit: contain;
         }
 
-        /* CONTENEDOR DE JUEGO QUE PERMITE SCROLL */
         #zona-juego {
             flex: 1;
             position: relative;
@@ -196,10 +189,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Deja pasar los toques hacia los targets */
+            pointer-events: none;
         }
 
-        /* BOTONES DE ZOOM FLOTANTES */
         #controles-zoom {
             position: fixed;
             bottom: 20px;
@@ -230,27 +222,27 @@
             transform: scale(0.9);
         }
 
-        /* ZONAS CLICKABLES INVISIBLES EN ESTADO NORMAL */
+        /* ZONAS CLICKABLES INVISIBLES */
         .click-target {
             position: absolute;
             width: 55px; 
             height: 55px; 
-            background-color: transparent;
-            border: 2px solid transparent;
-            border-radius: 50%;
+            background-color: transparent !important;
+            border: 2px solid transparent !important;
+            border-radius: 50% !important;
             cursor: pointer;
             transform: translate(-50%, -50%);
             pointer-events: auto;
             z-index: 10;
         }
 
-        /* CÍRCULO VERDE RESPLANDECIENTE AL ENCONTRAR (CON MÁXIMA PRIORIDAD) */
+        /* CÍRCULO VERDE RESPLANDECIENTE AL ENCONTRAR */
         .click-target.marcado-exito {
             border: 4px solid #2ecc71 !important;
             background-color: rgba(46, 204, 113, 0.45) !important;
             box-shadow: 0 0 15px #2ecc71, inset 0 0 10px rgba(46, 204, 113, 0.6) !important;
             pointer-events: none !important;
-            animation: efectoAparicionVerde 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: efectoAparicionVerde 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         }
 
         @keyframes efectoAparicionVerde {
@@ -259,7 +251,6 @@
             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
-        /* MODALES */
         .pantalla-overlay {
             position: fixed;
             top: 0;
@@ -373,15 +364,16 @@
     </div>
 
     <script>
+        // CONFIGURACIÓN CON IDS ÚNICOS POR CADA OBJETO
         const configuracionNiveles = [
             {
                 nivel: 1,
                 imagen: "img/nivel1.png", 
                 tiempo: 45,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
-                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
-                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
+                    { id: "howie1", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
+                    { id: "llave", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
+                    { id: "valija", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
                 ]
             },
             {
@@ -389,9 +381,9 @@
                 imagen: "img/nivel2.png", 
                 tiempo: 40,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
-                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
-                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
+                    { id: "howie2", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
+                    { id: "arco", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
+                    { id: "almohada", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
                 ]
             },
             {
@@ -399,9 +391,9 @@
                 imagen: "img/nivel3.png", 
                 tiempo: 35,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
-                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
-                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
+                    { id: "howie3", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
+                    { id: "bici", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
+                    { id: "kayak", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
                 ]
             }
         ];
@@ -415,7 +407,6 @@
         let animacionConfetiReq = null;
         let lanzandoConfeti = false;
 
-        // PRECARGA EN RAM
         window.cacheImagenes = [];
         function precargarImagenes() {
             configuracionNiveles.forEach(nivel => {
@@ -504,7 +495,6 @@
                 div.appendChild(img);
                 div.appendChild(span);
 
-                // LUPA AL MANTENER PRESIONADO
                 const activarLupa = (e) => {
                     e.preventDefault();
                     document.getElementById("lupa-img").src = obj.icono;
@@ -566,11 +556,12 @@
             if (obj && !obj.encontrado) {
                 obj.encontrado = true;
                 
-                // Tachamos en la lista de arriba
-                document.getElementById(`ui-${id}`).classList.add("encontrado");
+                // Tachamos arriba
+                let elementoUI = document.getElementById(`ui-${id}`);
+                if (elementoUI) elementoUI.classList.add("encontrado");
                 
-                // DIBUJAMOS EL CÍRCULO VERDE SOBRE LA IMAGEN
-                const targetMapa = document.getElementById(`target-${id}`);
+                // DIBUJAMOS EL CÍRCULO VERDE EN EL MAPA
+                let targetMapa = document.getElementById(`target-${id}`);
                 if (targetMapa) {
                     targetMapa.classList.add("marcado-exito");
                 }
