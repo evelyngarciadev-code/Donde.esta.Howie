@@ -227,7 +227,7 @@
             cursor: pointer;
             transform: translate(-50%, -50%);
             z-index: 100;
-            background-color: rgba(0, 0, 0, 0); /* Totalmente invisible durante la búsqueda */
+            background-color: rgba(0, 0, 0, 0);
         }
 
         /* CÍRCULO VERDE DE ENCONTRADO CON MARCA DE CHECK */
@@ -262,7 +262,6 @@
             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
-        /* MODALES */
         .pantalla-overlay {
             position: fixed;
             top: 0;
@@ -311,7 +310,6 @@
 </head>
 <body>
 
-    <!-- MENÚ DE INICIO -->
     <div id="pantalla-inicio" class="pantalla-overlay">
         <h1>¡Buscando a Howie!</h1>
         <p>Encontrá a Howie y los objetos perdidos en el hotel antes de que se acabe el tiempo.</p>
@@ -319,19 +317,16 @@
         <button class="btn" onclick="iniciarJuego()">¡Empezar a Jugar!</button>
     </div>
 
-    <!-- MARCADOR SUPERIOR -->
     <div id="marcador">
         <div id="nivel-actual">1/3</div>
         <div id="objetivos"></div>
         <div id="timer">⏱️ 45</div>
     </div>
 
-    <!-- POPUP FLOTANTE LUPA -->
     <div id="lupa-preview">
         <img id="lupa-img" src="" alt="Icono Lupa">
     </div>
 
-    <!-- ZONA DE BÚSQUEDA -->
     <div id="zona-juego">
         <div id="contenedor-scroll">
             <div id="capa-interactiva">
@@ -341,20 +336,17 @@
         </div>
     </div>
 
-    <!-- CONTROLES DE ZOOM -->
     <div id="controles-zoom">
         <div class="btn-zoom" onclick="cambiarZoom(0.35)">+</div>
         <div class="btn-zoom" onclick="cambiarZoom(-0.35)">-</div>
     </div>
 
-    <!-- PANTALLA SIGUIENTE NIVEL -->
     <div id="pantalla-siguiente" class="pantalla-overlay oculto">
         <h1>¡Excelente!</h1>
         <p>Encontraste todo a tiempo.</p>
         <button class="btn" onclick="cargarNivelSiguiente()">Siguiente Nivel</button>
     </div>
 
-    <!-- PANTALLA PERDISTE -->
     <div id="pantalla-perdiste" class="pantalla-overlay oculto">
         <h1 style="color: #e74c3c;">¡Se acabó el tiempo!</h1>
         <p>Estuviste cerca, ¡volvé a intentarlo!</p>
@@ -364,7 +356,6 @@
         </span>
     </div>
 
-    <!-- PANTALLA JUEGO GANADO -->
     <div id="pantalla-ganaste" class="pantalla-overlay oculto">
         <h1 style="color: #2ecc71;">¡SOS UN EXPERTO! 🎉</h1>
         <p style="font-size: 20px;">Lograste superar todos los niveles.</p>
@@ -418,7 +409,6 @@
         let animacionConfetiReq = null;
         let lanzandoConfeti = false;
 
-        // PRECARGA EN RAM
         window.cacheImagenes = [];
         function precargarImagenes() {
             configuracionNiveles.forEach(nivel => {
@@ -547,14 +537,13 @@
                 // 1. Tacha arriba
                 document.getElementById(`ui-${id}`).classList.add("encontrado");
                 
-                // 2. Dibuja el círculo verde inmediatamente sobre la figura
+                // 2. Dibuja el círculo verde
                 let circulo = document.createElement("div");
                 circulo.className = "circulo-encontrado";
                 circulo.style.top = top;
                 circulo.style.left = left;
                 document.getElementById("contenedor-objetos").appendChild(circulo);
 
-                // Desactiva el clic en esa zona para que no reaccione de nuevo
                 if (elementoTarget) elementoTarget.style.pointerEvents = "none";
 
                 let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
