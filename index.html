@@ -3,385 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Buscando a Howie - Hotel Challenge</title>
-    <!-- Librería de Confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        html, body { width: 100%; height: 100%; background: #111; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        
+        #marcador { height: 60px; background: #1e272e; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; z-index: 100; flex-shrink: 0; }
+        #nivel-actual { font-size: 13px; font-weight: 800; color: #f1c40f; background: #2c3e50; padding: 4px 8px; border-radius: 12px; }
+        #timer { font-size: 16px; font-weight: bold; color: #d63031; background: #fff; padding: 4px 10px; border-radius: 20px; }
+        #objetivos { display: flex; gap: 8px; align-items: center; justify-content: center; flex: 1; overflow-x: auto; }
+        .objetivo-item { background: #2c3e50; padding: 3px 8px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .objetivo-item img { width: 28px; height: 28px; object-fit: contain; background: #fff; border-radius: 50%; }
+        .objetivo-item.encontrado { background: #27ae60; text-decoration: line-through; opacity: 0.4; }
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            background-color: #111;
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+        #lupa-preview { position: fixed; top: 75px; left: 50%; transform: translateX(-50%) scale(0); width: 110px; height: 110px; background: #fff; border: 4px solid #f1c40f; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 200; opacity: 0; transition: transform 0.15s, opacity 0.15s; }
+        #lupa-preview.activa { transform: translateX(-50%) scale(1); opacity: 1; }
+        #lupa-preview img { width: 85px; height: 85px; object-fit: contain; }
 
-        /* BARRA SUPERIOR FIJA Y COMPACTA */
-        #marcador {
-            height: 60px;
-            background-color: #1e272e;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 10px;
-            border-bottom: 2px solid #34495e;
-            z-index: 100;
-            flex-shrink: 0;
-            width: 100%;
-            gap: 6px;
-        }
+        #zona-juego { flex: 1; position: relative; background: #000; overflow: auto; display: flex; justify-content: center; align-items: center; }
+        #capa-interactiva { position: relative; display: inline-block; line-height: 0; transform-origin: center center; }
+        #imagen-fondo { display: block; max-width: 100vw; max-height: calc(100vh - 65px); width: auto; height: auto; }
 
-        #nivel-actual {
-            font-size: 13px;
-            font-weight: 800;
-            color: #f1c40f;
-            background-color: #2c3e50;
-            padding: 4px 8px;
-            border-radius: 12px;
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-
-        #timer {
-            font-size: 16px;
-            font-weight: bold;
-            color: #d63031;
-            background: #ffffff;
-            padding: 4px 10px;
-            border-radius: 20px;
-            flex-shrink: 0;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-
-        #objetivos {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            overflow-x: auto;
-            padding: 2px 0;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .objetivo-item {
-            background: #2c3e50;
-            padding: 3px 8px 3px 4px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid #485460;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            flex-shrink: 0;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        .objetivo-item img {
-            width: 28px;
-            height: 28px;
-            object-fit: contain;
-            display: inline-block;
-            background-color: #ffffff;
-            border-radius: 50%;
-            padding: 2px;
-            pointer-events: none;
-        }
-
-        .objetivo-item.encontrado {
-            background: #27ae60;
-            border-color: #2ecc71;
-            text-decoration: line-through;
-            opacity: 0.4;
-        }
-
-        #lupa-preview {
-            position: fixed;
-            top: 75px;
-            left: 50%;
-            transform: translateX(-50%) scale(0);
-            width: 110px;
-            height: 110px;
-            background-color: #ffffff;
-            border: 4px solid #f1c40f;
-            border-radius: 50%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            pointer-events: none;
-            opacity: 0;
-            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.15s ease;
-        }
-
-        #lupa-preview.activa {
-            transform: translateX(-50%) scale(1);
-            opacity: 1;
-        }
-
-        #lupa-preview img {
-            width: 85px;
-            height: 85px;
-            object-fit: contain;
-        }
-
-        #zona-juego {
-            flex: 1;
-            position: relative;
-            background-color: #000;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #contenedor-scroll {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: auto;
-            position: relative;
-        }
-
-        #capa-interactiva {
-            position: relative;
-            display: inline-block;
-            line-height: 0;
-            transition: transform 0.2s ease-out;
-            transform-origin: center center;
-            will-change: transform;
-        }
-
-        #imagen-fondo {
-            display: block;
-            width: auto;
-            height: auto;
-            max-width: 100vw;
-            max-height: calc(100vh - 65px);
-            border-radius: 4px;
-            position: relative;
-            z-index: 1;
-        }
-
-        #contenedor-objetos {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 20;
-        }
-
-        #controles-zoom {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 150;
-        }
-
-        .btn-zoom {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background-color: #f1c40f;
-            color: #2c3e50;
-            font-size: 26px;
-            font-weight: bold;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .btn-zoom:active {
-            transform: scale(0.9);
-        }
-
-        /* ZONAS CLICKABLES INVISIBLES EN ESTADO NORMAL */
+        /* CIRCULOS ROJOS DE PRUEBA (VISIBLES SIEMPRE) */
         .click-target {
             position: absolute;
-            width: 55px; 
-            height: 55px; 
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 0, 0, 0.5) !important; /* Rojo transparente visible */
+            border: 3px solid red !important;
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
-            pointer-events: auto !important;
-            z-index: 50;
+            z-index: 999 !important;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: rgba(255, 0, 0, 0); /* Poné 0.3 si querés ver los círculos rojos mientras testeás */
-            border: 2px solid transparent;
         }
 
-        /* CÍRCULO VERDE / MARCA DE ÉXITO OBLIGATORIA */
+        /* CIRCULO VERDE CUANDO LO TOCAS */
         .click-target.marcado-exito {
-            background-color: rgba(46, 204, 113, 0.45) !important;
-            border: 4px solid #2ecc71 !important;
-            box-shadow: 0 0 15px #2ecc71, 0 0 8px #ffffff !important;
-            pointer-events: none !important;
-            animation: efectoAparicionVerde 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            background: rgba(0, 255, 0, 0.7) !important; /* Verde bien chillón */
+            border: 4px solid #fff !important;
+            box-shadow: 0 0 20px #00ff00;
         }
-
         .click-target.marcado-exito::after {
             content: "✔";
-            color: #ffffff;
-            font-size: 28px;
+            color: #fff;
+            font-size: 26px;
             font-weight: bold;
-            text-shadow: 0 0 6px #000000;
         }
 
-        @keyframes efectoAparicionVerde {
-            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
-            70% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-
-        .pantalla-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            text-align: center;
-            padding: 20px;
-        }
-
+        #controles-zoom { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 150; }
+        .btn-zoom { width: 48px; height: 48px; border-radius: 50%; background: #f1c40f; color: #2c3e50; font-size: 26px; font-weight: bold; border: 3px solid #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .pantalla-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; text-align: center; padding: 20px; }
         .oculto { display: none !important; }
-
-        .btn {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .btn:active { transform: scale(0.95); }
-        .btn-reiniciar { background-color: #e74c3c; }
-        h1 { font-size: 32px; margin-bottom: 10px; color: #f1c40f; }
-        p { font-size: 16px; margin-bottom: 10px; }
-
-        @media (max-width: 600px) {
-            #marcador { height: 54px; padding: 0 6px; }
-            #nivel-actual { font-size: 11px; padding: 3px 6px; }
-            #timer { font-size: 14px; padding: 3px 8px; }
-            .objetivo-item { padding: 2px 6px 2px 3px; font-size: 11px; }
-            .objetivo-item img { width: 22px; height: 22px; }
-            #imagen-fondo { max-height: calc(100vh - 58px); }
-        }
+        .btn { background: #27ae60; color: white; border: none; padding: 14px 30px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 20px; }
+        .btn-reiniciar { background: #e74c3c; }
     </style>
 </head>
 <body>
 
-    <!-- MENÚ DE INICIO -->
     <div id="pantalla-inicio" class="pantalla-overlay">
         <h1>¡Buscando a Howie!</h1>
         <p>Encontrá a Howie y los objetos perdidos en el hotel antes de que se acabe el tiempo.</p>
-        <p>Son 3 niveles. ¿Estás listo?</p>
         <button class="btn" onclick="iniciarJuego()">¡Empezar a Jugar!</button>
     </div>
 
-    <!-- MARCADOR SUPERIOR -->
     <div id="marcador">
         <div id="nivel-actual">1/3</div>
         <div id="objetivos"></div>
         <div id="timer">⏱️ 45</div>
     </div>
 
-    <!-- POPUP FLOTANTE LUPA -->
-    <div id="lupa-preview">
-        <img id="lupa-img" src="" alt="Icono Lupa">
-    </div>
+    <div id="lupa-preview"><img id="lupa-img" src=""></div>
 
-    <!-- ZONA DE BÚSQUEDA -->
     <div id="zona-juego">
         <div id="contenedor-scroll">
             <div id="capa-interactiva">
-                <img id="imagen-fondo" src="" alt="Mapa de búsqueda">
+                <img id="imagen-fondo" src="">
                 <div id="contenedor-objetos"></div>
             </div>
         </div>
     </div>
 
-    <!-- CONTROLES DE ZOOM -->
     <div id="controles-zoom">
         <div class="btn-zoom" onclick="cambiarZoom(0.35)">+</div>
         <div class="btn-zoom" onclick="cambiarZoom(-0.35)">-</div>
     </div>
 
-    <!-- PANTALLA SIGUIENTE NIVEL -->
     <div id="pantalla-siguiente" class="pantalla-overlay oculto">
         <h1>¡Excelente!</h1>
-        <p>Encontraste todo a tiempo.</p>
         <button class="btn" onclick="cargarNivelSiguiente()">Siguiente Nivel</button>
     </div>
 
-    <!-- PANTALLA PERDISTE -->
     <div id="pantalla-perdiste" class="pantalla-overlay oculto">
         <h1 style="color: #e74c3c;">¡Se acabó el tiempo!</h1>
-        <p>Estuviste cerca, ¡volvé a intentarlo!</p>
         <button class="btn btn-reiniciar" onclick="reiniciarJuego()">Intentar de nuevo</button>
-        <span onclick="reiniciarTodoElJuegoDesdePerdiste()" style="margin-top: 25px; font-size: 14px; color: #aaa; text-decoration: underline; cursor: pointer;">
-            Volver al menú de inicio
-        </span>
     </div>
 
-    <!-- PANTALLA JUEGO GANADO -->
     <div id="pantalla-ganaste" class="pantalla-overlay oculto">
         <h1 style="color: #2ecc71;">¡SOS UN EXPERTO! 🎉</h1>
-        <p style="font-size: 20px;">Lograste superar todos los niveles.</p>
-        <div style="background: #2c3e50; padding: 20px; border-radius: 15px; margin: 20px 0; border: 3px dashed #f1c40f;">
-            <h2 style="color: #f1c40f; margin-bottom: 5px;">🏆 ¡RECLAMÁ TU PREMIO! 🏆</h2>
-            <p>Mostrale esta pantalla al staff del Stand para llevarte tu recompensa instantánea.</p>
-        </div>
         <button class="btn btn-reiniciar" onclick="reiniciarTodoElJuego()">Volver al Inicio</button>
     </div>
 
     <script>
         const configuracionNiveles = [
             {
-                nivel: 1,
-                imagen: "img/nivel1.png", 
-                tiempo: 45,
+                nivel: 1, imagen: "img/nivel1.png", tiempo: 45,
                 objetos: [
                     { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
                     { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
@@ -389,9 +118,7 @@
                 ]
             },
             {
-                nivel: 2,
-                imagen: "img/nivel2.png", 
-                tiempo: 40,
+                nivel: 2, imagen: "img/nivel2.png", tiempo: 40,
                 objetos: [
                     { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
                     { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
@@ -399,9 +126,7 @@
                 ]
             },
             {
-                nivel: 3,
-                imagen: "img/nivel3.png", 
-                tiempo: 35,
+                nivel: 3, imagen: "img/nivel3.png", tiempo: 35,
                 objetos: [
                     { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
                     { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
@@ -410,73 +135,23 @@
             }
         ];
 
-        let nivelActualIndex = 0;
-        let tiempoRestante = 0;
-        let intervaloTimer = null;
-        let juegoActivo = false;
-        let escalaActual = 1;
-        
-        let animacionConfetiReq = null;
-        let lanzandoConfeti = false;
-
-        window.cacheImagenes = [];
-        function precargarImagenes() {
-            configuracionNiveles.forEach(nivel => {
-                let imgNivel = new Image();
-                imgNivel.src = nivel.imagen;
-                window.cacheImagenes.push(imgNivel);
-
-                nivel.objetos.forEach(obj => {
-                    let imgIcono = new Image();
-                    imgIcono.src = obj.icono;
-                    window.cacheImagenes.push(imgIcono);
-                });
-            });
-        }
-        precargarImagenes();
-
-        function activarPantallaCompleta() {
-            let elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(err => console.log(err));
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) {
-                elem.msRequestFullscreen();
-            }
-        }
+        let nivelActualIndex = 0, tiempoRestante = 0, intervaloTimer = null, juegoActivo = false, escalaActual = 1;
 
         function cambiarZoom(delta) {
             escalaActual += delta;
             if (escalaActual < 1) escalaActual = 1;
             if (escalaActual > 2.5) escalaActual = 2.5;
-
-            const capa = document.getElementById("capa-interactiva");
-            capa.style.transform = `scale(${escalaActual})`;
-            
-            if (escalaActual === 1) {
-                setTimeout(() => {
-                    const zona = document.getElementById("zona-juego");
-                    zona.scrollTop = 0;
-                    zona.scrollLeft = 0;
-                }, 200);
-            }
+            document.getElementById("capa-interactiva").style.transform = `scale(${escalaActual})`;
         }
 
         function resetearZoom() {
             escalaActual = 1;
-            const capa = document.getElementById("capa-interactiva");
-            capa.style.transform = "scale(1)";
-            const zona = document.getElementById("zona-juego");
-            zona.scrollTop = 0;
-            zona.scrollLeft = 0;
+            document.getElementById("capa-interactiva").style.transform = "scale(1)";
         }
 
         function iniciarJuego() {
-            activarPantallaCompleta();
             document.getElementById("pantalla-inicio").classList.add("oculto");
-            nivelActualIndex = 0;
-            cargarNivel(nivelActualIndex);
+            cargarNivel(0);
         }
 
         function cargarNivel(index) {
@@ -486,7 +161,6 @@
 
             document.getElementById("nivel-actual").innerText = `${datosNivel.nivel}/3`;
             document.getElementById("imagen-fondo").src = datosNivel.imagen;
-            
             tiempoRestante = datosNivel.tiempo;
             document.getElementById("timer").innerText = `⏱️ ${tiempoRestante}`;
 
@@ -496,33 +170,14 @@
                 let div = document.createElement("div");
                 div.id = `ui-${obj.id}`;
                 div.className = "objetivo-item";
-                
-                let img = document.createElement("img");
-                img.src = obj.icono;
-                img.alt = obj.nombre;
-                
-                let span = document.createElement("span");
-                span.innerText = obj.nombre;
+                div.innerHTML = `<img src="${obj.icono}"><span>${obj.nombre}</span>`;
 
-                div.appendChild(img);
-                div.appendChild(span);
-
-                const activarLupa = (e) => {
-                    e.preventDefault();
-                    document.getElementById("lupa-img").src = obj.icono;
-                    document.getElementById("lupa-preview").classList.add("activa");
-                };
-
-                const desactivarLupa = () => {
-                    document.getElementById("lupa-preview").classList.remove("activa");
-                };
-
+                const activarLupa = (e) => { e.preventDefault(); document.getElementById("lupa-img").src = obj.icono; document.getElementById("lupa-preview").classList.add("activa"); };
+                const desactivarLupa = () => document.getElementById("lupa-preview").classList.remove("activa");
                 div.addEventListener("touchstart", activarLupa, { passive: false });
                 div.addEventListener("touchend", desactivarLupa);
-                div.addEventListener("touchcancel", desactivarLupa);
                 div.addEventListener("mousedown", activarLupa);
                 div.addEventListener("mouseup", desactivarLupa);
-                div.addEventListener("mouseleave", desactivarLupa);
 
                 contenedorObjetivos.appendChild(div);
             });
@@ -535,133 +190,36 @@
                 divTarget.style.top = obj.top;
                 divTarget.style.left = obj.left;
                 
-                // Mapeo directo al evento click
-                divTarget.onclick = function(e) {
-                    e.stopPropagation();
+                divTarget.onclick = function() {
                     if (!obj.encontrado) {
-                        marcarComoEncontrado(obj.id, divTarget);
+                        obj.encontrado = true;
+                        document.getElementById(`ui-${obj.id}`).classList.add("encontrado");
+                        divTarget.classList.add("marcado-exito"); // Cambia a verde al tocar
+                        
+                        if (datosNivel.objetos.every(o => o.encontrado)) {
+                            juegoActivo = false;
+                            clearInterval(intervaloTimer);
+                            if (nivelActualIndex === 2) document.getElementById("pantalla-ganaste").classList.remove("oculto");
+                            else document.getElementById("pantalla-siguiente").classList.remove("oculto");
+                        }
                     }
                 };
-
                 contenedorObjetos.appendChild(divTarget);
             });
 
             juegoActivo = true;
             clearInterval(intervaloTimer);
-            intervaloTimer = setInterval(actualizarTimer, 1000);
+            intervaloTimer = setInterval(() => {
+                if (!juegoActivo) return;
+                tiempoRestante--;
+                document.getElementById("timer").innerText = `⏱️ ${tiempoRestante}`;
+                if (tiempoRestante <= 0) { juegoActivo = false; clearInterval(intervaloTimer); document.getElementById("pantalla-perdiste").classList.remove("oculto"); }
+            }, 1000);
         }
 
-        function actualizarTimer() {
-            if (!juegoActivo) return;
-            tiempoRestante--;
-            document.getElementById("timer").innerText = `⏱️ ${tiempoRestante}`;
-
-            if (tiempoRestante <= 0) {
-                finalizarNivelPorTiempo();
-            }
-        }
-
-        function marcarComoEncontrado(id, elementoMapa) {
-            if (!juegoActivo) return;
-            
-            let datosNivel = configuracionNiveles[nivelActualIndex];
-            let obj = datosNivel.objetos.find(o => o.id === id);
-
-            if (obj && !obj.encontrado) {
-                obj.encontrado = true;
-                
-                // 1. Tacha en la lista superior
-                let elUI = document.getElementById(`ui-${id}`);
-                if (elUI) elUI.classList.add("encontrado");
-                
-                // 2. Transforma el elemento tocado directamente en el círculo verde
-                if (elementoMapa) {
-                    elementoMapa.classList.add("marcado-exito");
-                }
-
-                let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
-                if (todosEncontrados) {
-                    juegoActivo = false;
-                    clearInterval(intervaloTimer);
-                    
-                    if (nivelActualIndex === configuracionNiveles.length - 1) {
-                        pantallaVictoriaFinal();
-                    } else {
-                        document.getElementById("pantalla-siguiente").classList.remove("oculto");
-                    }
-                }
-            }
-        }
-
-        function cargarNivelSiguiente() {
-            document.getElementById("pantalla-siguiente").classList.add("oculto");
-            nivelActualIndex++;
-            cargarNivel(nivelActualIndex);
-        }
-
-        function finalizarNivelPorTiempo() {
-            juegoActivo = false;
-            clearInterval(intervaloTimer);
-            document.getElementById("pantalla-perdiste").classList.remove("oculto");
-        }
-
-        function reiniciarJuego() {
-            document.getElementById("pantalla-perdiste").classList.add("oculto");
-            cargarNivel(nivelActualIndex);
-        }
-
-        function reiniciarTodoElJuegoDesdePerdiste() {
-            document.getElementById("pantalla-perdiste").classList.add("oculto");
-            document.getElementById("pantalla-inicio").classList.remove("oculto");
-        }
-
-        function pantallaVictoriaFinal() {
-            document.getElementById("pantalla-ganaste").classList.remove("oculto");
-            
-            var duration = 4 * 1000;
-            var end = Date.now() + duration;
-            lanzandoConfeti = true;
-
-            (function frame() {
-                if (!lanzandoConfeti) return;
-
-                confetti({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 }
-                });
-                confetti({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
-
-                if (Date.now() < end && lanzandoConfeti) {
-                    animacionConfetiReq = requestAnimationFrame(frame);
-                } else {
-                    lanzandoConfeti = false;
-                }
-            }());
-        }
-
-        function detenerConfeti() {
-            lanzandoConfeti = false;
-            if (animacionConfetiReq) {
-                cancelAnimationFrame(animacionConfetiReq);
-                animacionConfetiReq = null;
-            }
-            if (typeof confetti !== "undefined" && confetti.reset) {
-                confetti.reset();
-            }
-        }
-
-        function reiniciarTodoElJuego() {
-            detenerConfeti();
-            document.getElementById("pantalla-ganaste").classList.add("oculto");
-            document.getElementById("pantalla-inicio").classList.remove("oculto");
-        }
+        function cargarNivelSiguiente() { document.getElementById("pantalla-siguiente").classList.add("oculto"); nivelActualIndex++; cargarNivel(nivelActualIndex); }
+        function reiniciarJuego() { document.getElementById("pantalla-perdiste").classList.add("oculto"); cargarNivel(nivelActualIndex); }
+        function reiniciarTodoElJuego() { document.getElementById("pantalla-ganaste").classList.add("oculto"); document.getElementById("pantalla-inicio").classList.remove("oculto"); }
     </script>
 </body>
 </html>
