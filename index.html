@@ -182,7 +182,7 @@
             max-height: calc(100vh - 65px);
             border-radius: 4px;
             position: relative;
-            z-index: 1; /* Capa inferior */
+            z-index: 1;
         }
 
         #contenedor-objetos {
@@ -192,7 +192,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 20; /* Capa superior por encima de la foto */
+            z-index: 20;
         }
 
         #controles-zoom {
@@ -228,24 +228,34 @@
         /* ZONAS CLICKABLES INVISIBLES EN CAPA SUPERIOR */
         .click-target {
             position: absolute;
-            width: 55px; 
-            height: 55px; 
-            background-color: transparent !important;
-            border: 2px solid transparent !important;
-            border-radius: 50% !important;
+            width: 60px; 
+            height: 60px; 
+            background-color: transparent;
+            border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
             pointer-events: auto;
-            z-index: 30; /* Por encima de todo dentro del mapa */
+            z-index: 50; /* Máxima prioridad sobre la foto */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* CÍRCULO VERDE NEÓN QUE SE DIBUJA AL HACER CLIC */
+        /* CÍRCULO VERDE / ROJO DE ÉXITO VISIBLE Y CLARO */
         .click-target.marcado-exito {
-            border: 5px solid #00ff66 !important;
-            background-color: rgba(0, 255, 102, 0.4) !important;
-            box-shadow: 0 0 20px #00ff66, inset 0 0 10px rgba(0, 255, 102, 0.6) !important;
+            border: 6px solid #2ecc71 !important;
+            background-color: rgba(46, 204, 113, 0.45) !important;
+            box-shadow: 0 0 20px #2ecc71, 0 0 10px #ffffff !important;
             pointer-events: none !important;
             animation: efectoAparicionVerde 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+
+        .click-target.marcado-exito::after {
+            content: "✔";
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 8px #000000;
         }
 
         @keyframes efectoAparicionVerde {
@@ -367,15 +377,16 @@
     </div>
 
     <script>
+        // CONFIGURACIÓN DE NIVELES CON ESTRUCTURA UNIFICADA
         const configuracionNiveles = [
             {
                 nivel: 1,
                 imagen: "img/nivel1.png", 
                 tiempo: 45,
                 objetos: [
-                    { id: "howie1", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
-                    { id: "llave", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
-                    { id: "valija", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
+                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
+                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
                 ]
             },
             {
@@ -383,9 +394,9 @@
                 imagen: "img/nivel2.png", 
                 tiempo: 40,
                 objetos: [
-                    { id: "howie2", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
-                    { id: "arco", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
-                    { id: "almohada", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
+                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
+                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
                 ]
             },
             {
@@ -393,9 +404,9 @@
                 imagen: "img/nivel3.png", 
                 tiempo: 35,
                 objetos: [
-                    { id: "howie3", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
-                    { id: "bici", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
-                    { id: "kayak", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
+                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
+                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
                 ]
             }
         ];
@@ -519,16 +530,17 @@
 
             const contenedorObjetos = document.getElementById("contenedor-objetos");
             contenedorObjetos.innerHTML = "";
-            datosNivel.objetos.forEach(obj => {
+            datosNivel.objetos.forEach((obj, idx) => {
                 let divTarget = document.createElement("div");
-                divTarget.id = `target-${obj.id}`; 
+                // Mantiene vinculación unívoca
+                divTarget.setAttribute("data-id", obj.id);
                 divTarget.className = "click-target";
                 divTarget.style.top = obj.top;
                 divTarget.style.left = obj.left;
                 
                 divTarget.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    marcarComoEncontrado(obj.id);
+                    marcarComoEncontrado(obj.id, divTarget);
                 });
 
                 contenedorObjetos.appendChild(divTarget);
@@ -549,7 +561,7 @@
             }
         }
 
-        function marcarComoEncontrado(id) {
+        function marcarComoEncontrado(id, elementoClickeado) {
             if (!juegoActivo) return;
             
             let datosNivel = configuracionNiveles[nivelActualIndex];
@@ -558,14 +570,13 @@
             if (obj && !obj.encontrado) {
                 obj.encontrado = true;
                 
-                // Tachamos arriba
-                let elementoUI = document.getElementById(`ui-${id}`);
-                if (elementoUI) elementoUI.classList.add("encontrado");
+                // 1. Tacha en la barra de arriba
+                let elUI = document.getElementById(`ui-${id}`);
+                if (elUI) elUI.classList.add("encontrado");
                 
-                // ACTIVAMOS EL CÍRCULO VERDE
-                let targetMapa = document.getElementById(`target-${id}`);
-                if (targetMapa) {
-                    targetMapa.className = "click-target marcado-exito";
+                // 2. Dibuja el círculo verde inmediatamente sobre el elemento tocado
+                if (elementoClickeado) {
+                    elementoClickeado.className = "click-target marcado-exito";
                 }
 
                 let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
