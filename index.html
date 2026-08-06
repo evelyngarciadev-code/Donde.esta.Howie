@@ -191,7 +191,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
             z-index: 20;
         }
 
@@ -225,27 +224,28 @@
             transform: scale(0.9);
         }
 
-        /* ZONAS CLICKABLES INVISIBLES EN CAPA SUPERIOR */
+        /* ZONAS CLICKABLES INVISIBLES EN ESTADO NORMAL */
         .click-target {
             position: absolute;
-            width: 60px; 
-            height: 60px; 
-            background-color: transparent;
+            width: 55px; 
+            height: 55px; 
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
-            pointer-events: auto;
-            z-index: 50; /* Máxima prioridad sobre la foto */
+            pointer-events: auto !important;
+            z-index: 50;
             display: flex;
             justify-content: center;
             align-items: center;
+            background: rgba(255, 0, 0, 0); /* Poné 0.3 si querés ver los círculos rojos mientras testeás */
+            border: 2px solid transparent;
         }
 
-        /* CÍRCULO VERDE / ROJO DE ÉXITO VISIBLE Y CLARO */
+        /* CÍRCULO VERDE / MARCA DE ÉXITO OBLIGATORIA */
         .click-target.marcado-exito {
-            border: 6px solid #2ecc71 !important;
             background-color: rgba(46, 204, 113, 0.45) !important;
-            box-shadow: 0 0 20px #2ecc71, 0 0 10px #ffffff !important;
+            border: 4px solid #2ecc71 !important;
+            box-shadow: 0 0 15px #2ecc71, 0 0 8px #ffffff !important;
             pointer-events: none !important;
             animation: efectoAparicionVerde 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         }
@@ -253,9 +253,9 @@
         .click-target.marcado-exito::after {
             content: "✔";
             color: #ffffff;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
-            text-shadow: 0 0 8px #000000;
+            text-shadow: 0 0 6px #000000;
         }
 
         @keyframes efectoAparicionVerde {
@@ -377,7 +377,6 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE NIVELES CON ESTRUCTURA UNIFICADA
         const configuracionNiveles = [
             {
                 nivel: 1,
@@ -530,18 +529,19 @@
 
             const contenedorObjetos = document.getElementById("contenedor-objetos");
             contenedorObjetos.innerHTML = "";
-            datosNivel.objetos.forEach((obj, idx) => {
+            datosNivel.objetos.forEach(obj => {
                 let divTarget = document.createElement("div");
-                // Mantiene vinculación unívoca
-                divTarget.setAttribute("data-id", obj.id);
                 divTarget.className = "click-target";
                 divTarget.style.top = obj.top;
                 divTarget.style.left = obj.left;
                 
-                divTarget.addEventListener("click", (e) => {
+                // Mapeo directo al evento click
+                divTarget.onclick = function(e) {
                     e.stopPropagation();
-                    marcarComoEncontrado(obj.id, divTarget);
-                });
+                    if (!obj.encontrado) {
+                        marcarComoEncontrado(obj.id, divTarget);
+                    }
+                };
 
                 contenedorObjetos.appendChild(divTarget);
             });
@@ -561,7 +561,7 @@
             }
         }
 
-        function marcarComoEncontrado(id, elementoClickeado) {
+        function marcarComoEncontrado(id, elementoMapa) {
             if (!juegoActivo) return;
             
             let datosNivel = configuracionNiveles[nivelActualIndex];
@@ -570,13 +570,13 @@
             if (obj && !obj.encontrado) {
                 obj.encontrado = true;
                 
-                // 1. Tacha en la barra de arriba
+                // 1. Tacha en la lista superior
                 let elUI = document.getElementById(`ui-${id}`);
                 if (elUI) elUI.classList.add("encontrado");
                 
-                // 2. Dibuja el círculo verde inmediatamente sobre el elemento tocado
-                if (elementoClickeado) {
-                    elementoClickeado.className = "click-target marcado-exito";
+                // 2. Transforma el elemento tocado directamente en el círculo verde
+                if (elementoMapa) {
+                    elementoMapa.classList.add("marcado-exito");
                 }
 
                 let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
