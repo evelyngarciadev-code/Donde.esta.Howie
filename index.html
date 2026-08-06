@@ -181,6 +181,8 @@
             max-width: 100vw;
             max-height: calc(100vh - 65px);
             border-radius: 4px;
+            position: relative;
+            z-index: 1; /* Capa inferior */
         }
 
         #contenedor-objetos {
@@ -190,6 +192,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+            z-index: 20; /* Capa superior por encima de la foto */
         }
 
         #controles-zoom {
@@ -222,7 +225,7 @@
             transform: scale(0.9);
         }
 
-        /* ZONAS CLICKABLES INVISIBLES */
+        /* ZONAS CLICKABLES INVISIBLES EN CAPA SUPERIOR */
         .click-target {
             position: absolute;
             width: 55px; 
@@ -233,21 +236,21 @@
             cursor: pointer;
             transform: translate(-50%, -50%);
             pointer-events: auto;
-            z-index: 10;
+            z-index: 30; /* Por encima de todo dentro del mapa */
         }
 
-        /* CÍRCULO VERDE RESPLANDECIENTE AL ENCONTRAR */
+        /* CÍRCULO VERDE NEÓN QUE SE DIBUJA AL HACER CLIC */
         .click-target.marcado-exito {
-            border: 4px solid #2ecc71 !important;
-            background-color: rgba(46, 204, 113, 0.45) !important;
-            box-shadow: 0 0 15px #2ecc71, inset 0 0 10px rgba(46, 204, 113, 0.6) !important;
+            border: 5px solid #00ff66 !important;
+            background-color: rgba(0, 255, 102, 0.4) !important;
+            box-shadow: 0 0 20px #00ff66, inset 0 0 10px rgba(0, 255, 102, 0.6) !important;
             pointer-events: none !important;
             animation: efectoAparicionVerde 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         }
 
         @keyframes efectoAparicionVerde {
             0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
-            70% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
+            70% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
@@ -364,7 +367,6 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN CON IDS ÚNICOS POR CADA OBJETO
         const configuracionNiveles = [
             {
                 nivel: 1,
@@ -560,10 +562,10 @@
                 let elementoUI = document.getElementById(`ui-${id}`);
                 if (elementoUI) elementoUI.classList.add("encontrado");
                 
-                // DIBUJAMOS EL CÍRCULO VERDE EN EL MAPA
+                // ACTIVAMOS EL CÍRCULO VERDE
                 let targetMapa = document.getElementById(`target-${id}`);
                 if (targetMapa) {
-                    targetMapa.classList.add("marcado-exito");
+                    targetMapa.className = "click-target marcado-exito";
                 }
 
                 let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
