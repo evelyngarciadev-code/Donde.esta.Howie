@@ -35,7 +35,7 @@
             align-items: center;
             padding: 0 10px;
             border-bottom: 2px solid #34495e;
-            z-index: 50;
+            z-index: 100;
             flex-shrink: 0;
             width: 100%;
             gap: 6px;
@@ -144,42 +144,39 @@
             object-fit: contain;
         }
 
-        /* ZONA DE JUEGO PRINCIPAL */
+        /* CONTENEDOR PRINCIPAL */
         #zona-juego {
             flex: 1;
             position: relative;
             background-color: #000;
             overflow: auto;
             -webkit-overflow-scrolling: touch;
-        }
-
-        #contenedor-scroll {
-            min-width: 100%;
-            min-height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 5px;
-            width: max-content;
-            height: max-content;
-            margin: 0 auto;
+        }
+
+        #contenedor-scroll {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
         }
 
         #capa-interactiva {
             position: relative;
-            width: 100%;
-            max-width: 100vw;
             display: inline-block;
-            transform-origin: top left;
+            line-height: 0;
             transition: transform 0.2s ease-out;
+            transform-origin: center center;
         }
 
         #imagen-fondo {
-            width: 100%;
-            height: auto;
-            max-height: calc(100vh - 70px);
-            object-fit: contain;
             display: block;
+            width: auto;
+            height: auto;
+            max-width: 100vw;
+            max-height: calc(100vh - 65px);
             border-radius: 4px;
         }
 
@@ -189,7 +186,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            z-index: 50;
         }
 
         /* BOTONES DE ZOOM FLOTANTES */
@@ -200,18 +197,18 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            z-index: 60;
+            z-index: 150;
         }
 
         .btn-zoom {
-            width: 46px;
-            height: 46px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             background-color: #f1c40f;
             color: #2c3e50;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
-            border: 2px solid #fff;
+            border: 3px solid #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             display: flex;
             justify-content: center;
@@ -219,38 +216,50 @@
             cursor: pointer;
         }
 
-        .btn-zoom:active {
-            transform: scale(0.9);
-        }
+        .btn-zoom:active { transform: scale(0.9); }
 
-        /* ZONAS CLICKABLES INVISIBLES (Acá cambiás el 0.4 a 0 para ocultar los rojos) */
+        /* ÁREAS INVISIBLES DE BÚSQUEDA */
         .click-target {
             position: absolute;
-            width: 55px; 
-            height: 55px; 
-            background: rgba(255, 0, 0, 0.4); /* 👈 Puesto en 0.4 para verificar visualmente */
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
-            pointer-events: auto;
-            z-index: 10;
+            z-index: 100;
+            background-color: rgba(0, 0, 0, 0); /* Totalmente invisible durante la búsqueda */
+        }
+
+        /* CÍRCULO VERDE DE ENCONTRADO CON MARCA DE CHECK */
+        .circulo-encontrado {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            border: 4px solid #2ecc71;
+            background-color: rgba(46, 204, 113, 0.45);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px #2ecc71, inset 0 0 8px rgba(255, 255, 255, 0.8);
+            z-index: 90;
+            pointer-events: none;
             display: flex;
             justify-content: center;
             align-items: center;
+            animation: efectoAparicion 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* CÍRCULO VERDE ILUMINADO AL ENCONTRAR */
-        .click-target.marcado-exito {
-            background: rgba(46, 204, 113, 0.5) !important;
-            border: 4px solid #2ecc71 !important;
-            box-shadow: 0 0 15px #2ecc71 !important;
-        }
-
-        .click-target.marcado-exito::after {
+        .circulo-encontrado::after {
             content: "✔";
             color: #ffffff;
             font-size: 26px;
             font-weight: bold;
+            text-shadow: 0 1px 4px #000;
+        }
+
+        @keyframes efectoAparicion {
+            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+            70% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
         /* MODALES */
@@ -265,7 +274,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 200;
             text-align: center;
             padding: 20px;
         }
@@ -296,7 +305,7 @@
             #timer { font-size: 14px; padding: 3px 8px; }
             .objetivo-item { padding: 2px 6px 2px 3px; font-size: 11px; }
             .objetivo-item img { width: 22px; height: 22px; }
-            #imagen-fondo { max-height: calc(100vh - 64px); }
+            #imagen-fondo { max-height: calc(100vh - 58px); }
         }
     </style>
 </head>
@@ -409,6 +418,7 @@
         let animacionConfetiReq = null;
         let lanzandoConfeti = false;
 
+        // PRECARGA EN RAM
         window.cacheImagenes = [];
         function precargarImagenes() {
             configuracionNiveles.forEach(nivel => {
@@ -502,10 +512,10 @@
                 divTarget.style.top = obj.top;
                 divTarget.style.left = obj.left;
                 
-                divTarget.addEventListener("click", (e) => {
+                divTarget.onclick = function(e) {
                     e.stopPropagation();
-                    marcarComoEncontrado(obj.id, divTarget);
-                });
+                    marcarComoEncontrado(obj.id, obj.top, obj.left, divTarget);
+                };
 
                 contenedorObjetos.appendChild(divTarget);
             });
@@ -525,7 +535,7 @@
             }
         }
 
-        function marcarComoEncontrado(id, targetElement) {
+        function marcarComoEncontrado(id, top, left, elementoTarget) {
             if (!juegoActivo) return;
             
             let datosNivel = configuracionNiveles[nivelActualIndex];
@@ -533,12 +543,19 @@
 
             if (obj && !obj.encontrado) {
                 obj.encontrado = true;
+                
+                // 1. Tacha arriba
                 document.getElementById(`ui-${id}`).classList.add("encontrado");
                 
-                // Cambia el círculo rojo a verde e inserta el tilde ✔
-                if (targetElement) {
-                    targetElement.classList.add("marcado-exito");
-                }
+                // 2. Dibuja el círculo verde inmediatamente sobre la figura
+                let circulo = document.createElement("div");
+                circulo.className = "circulo-encontrado";
+                circulo.style.top = top;
+                circulo.style.left = left;
+                document.getElementById("contenedor-objetos").appendChild(circulo);
+
+                // Desactiva el clic en esa zona para que no reaccione de nuevo
+                if (elementoTarget) elementoTarget.style.pointerEvents = "none";
 
                 let todosEncontrados = datosNivel.objetos.every(o => o.encontrado);
                 if (todosEncontrados) {
