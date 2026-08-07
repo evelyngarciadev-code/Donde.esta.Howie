@@ -141,7 +141,7 @@
             object-fit: contain;
         }
 
-        /* ZONA DE JUEGO Y SCROLL */
+        /* CONTENEDOR DE SCROLL TOTALMENTE LIBRE */
         #zona-juego {
             flex: 1;
             position: relative;
@@ -149,8 +149,6 @@
             overflow: auto;
             -webkit-overflow-scrolling: touch;
             display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         #contenedor-scroll {
@@ -158,15 +156,16 @@
             justify-content: center;
             align-items: center;
             margin: auto;
-            padding: 10px;
+            position: relative;
+            transition: width 0.2s ease-out, height 0.2s ease-out;
         }
 
         #capa-interactiva {
             position: relative;
             display: inline-block;
             line-height: 0;
-            transform-origin: center center;
-            transition: transform 0.2s ease-out; /* Transición fluida de Zoom */
+            transform-origin: 0 0; /* Origen en esquina superior izquierda para escalado exacto */
+            transition: transform 0.2s ease-out;
         }
 
         #imagen-fondo {
@@ -299,6 +298,7 @@
             #timer { font-size: 14px; padding: 3px 8px; }
             .objetivo-item { padding: 2px 6px 2px 3px; font-size: 11px; }
             .objetivo-item img { width: 22px; height: 22px; }
+            #imagen-fondo { max-height: calc(100vh - 58px); }
         }
     </style>
 </head>
@@ -419,20 +419,38 @@
         }
         precargarImagenes();
 
-        // ZOOM LIMPIO Y FLUIDO SIN PARPADEO NI CAMBIOS DE LAYOUT
+        // CONTROL DE ZOOM QUE EXPANDE EL CONTENEDOR DE SCROLL REAL
         function cambiarZoom(delta) {
             escalaActual += delta;
             if (escalaActual < 1) escalaActual = 1;
             if (escalaActual > 2.5) escalaActual = 2.5;
 
             const capa = document.getElementById("capa-interactiva");
+            const scrollWrapper = document.getElementById("contenedor-scroll");
+            const imgFondo = document.getElementById("imagen-fondo");
+
             capa.style.transform = `scale(${escalaActual})`;
+
+            if (escalaActual === 1) {
+                scrollWrapper.style.width = "auto";
+                scrollWrapper.style.height = "auto";
+            } else {
+                const wBase = imgFondo.clientWidth;
+                const hBase = imgFondo.clientHeight;
+                
+                scrollWrapper.style.width = (wBase * escalaActual) + "px";
+                scrollWrapper.style.height = (hBase * escalaActual) + "px";
+            }
         }
 
         function resetearZoom() {
             escalaActual = 1;
             const capa = document.getElementById("capa-interactiva");
+            const scrollWrapper = document.getElementById("contenedor-scroll");
+            
             capa.style.transform = "scale(1)";
+            scrollWrapper.style.width = "auto";
+            scrollWrapper.style.height = "auto";
         }
 
         function iniciarJuego() {
