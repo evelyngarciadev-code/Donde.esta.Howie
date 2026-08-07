@@ -141,7 +141,7 @@
             object-fit: contain;
         }
 
-        /* CONTENEDOR CON SCROLL LIBRE EN TODAS DIRECCIONES */
+        /* ZONA DE SCROLL LIBRE */
         #zona-juego {
             flex: 1;
             position: relative;
@@ -159,22 +159,20 @@
             padding: 20px;
             width: max-content;
             height: max-content;
+            margin: auto;
         }
 
         #capa-interactiva {
             position: relative;
             display: inline-block;
             line-height: 0;
-            transform-origin: center center;
-            transition: width 0.2s ease-out, height 0.2s ease-out;
+            transition: width 0.2s ease-out;
         }
 
         #imagen-fondo {
             display: block;
             width: 100%;
             height: auto;
-            max-width: 100vw;
-            max-height: calc(100vh - 65px);
             border-radius: 4px;
         }
 
@@ -217,8 +215,8 @@
 
         .click-target {
             position: absolute;
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
@@ -228,8 +226,8 @@
 
         .circulo-encontrado {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border: 4px solid #2ecc71;
             background-color: rgba(46, 204, 113, 0.45);
             border-radius: 50%;
@@ -246,7 +244,7 @@
         .circulo-encontrado::after {
             content: "✔";
             color: #ffffff;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             text-shadow: 0 1px 4px #000;
         }
@@ -299,7 +297,6 @@
             #timer { font-size: 14px; padding: 3px 8px; }
             .objetivo-item { padding: 2px 6px 2px 3px; font-size: 11px; }
             .objetivo-item img { width: 22px; height: 22px; }
-            #imagen-fondo { max-height: calc(100vh - 58px); }
         }
     </style>
 </head>
@@ -338,7 +335,7 @@
 
     <div id="pantalla-siguiente" class="pantalla-overlay oculto">
         <h1>¡Excelente!</h1>
-        <p>Encontraste todo a timepo.</p>
+        <p>Encontraste todo a tiempo.</p>
         <button class="btn" onclick="cargarNivelSiguiente()">Siguiente Nivel</button>
     </div>
 
@@ -362,7 +359,6 @@
     </div>
 
     <script>
-        // MANTENEMOS TUS COORDENADAS EXACTAS A LO QUE CONFIGURASTE
         const configuracionNiveles = [
             {
                 nivel: 1,
@@ -401,7 +397,8 @@
         let intervaloTimer = null;
         let juegoActivo = false;
         let escalaActual = 1;
-        
+        let anchoBaseContenedor = 0;
+
         let animacionConfetiReq = null;
         let lanzandoConfeti = false;
 
@@ -421,20 +418,24 @@
         }
         precargarImagenes();
 
-        // NUEVO SISTEMA DE ZOOM QUE EXPANDE EL TAMAÑO REAL Y PERMITE SCROLL HASTA LOS BORDES
+        // CAMBIO CLAVE: Cambia el ancho físico del contenedor para estirar la caja de scroll
         function cambiarZoom(delta) {
             escalaActual += delta;
             if (escalaActual < 1) escalaActual = 1;
             if (escalaActual > 2.5) escalaActual = 2.5;
 
             const capa = document.getElementById("capa-interactiva");
-            capa.style.transform = `scale(${escalaActual})`;
+            if (anchoBaseContenedor === 0) {
+                anchoBaseContenedor = capa.clientWidth;
+            }
+            capa.style.width = (anchoBaseContenedor * escalaActual) + "px";
         }
 
         function resetearZoom() {
             escalaActual = 1;
             const capa = document.getElementById("capa-interactiva");
-            capa.style.transform = "scale(1)";
+            capa.style.width = "100%";
+            anchoBaseContenedor = 0;
         }
 
         function iniciarJuego() {
@@ -449,8 +450,14 @@
             datosNivel.objetos.forEach(obj => obj.encontrado = false);
 
             document.getElementById("nivel-actual").innerText = `${datosNivel.nivel}/3`;
-            document.getElementById("imagen-fondo").src = datosNivel.imagen;
             
+            const imgFondo = document.getElementById("imagen-fondo");
+            imgFondo.src = datosNivel.imagen;
+            imgFondo.onload = () => {
+                const capa = document.getElementById("capa-interactiva");
+                anchoBaseContenedor = capa.clientWidth;
+            };
+
             tiempoRestante = datosNivel.tiempo;
             document.getElementById("timer").innerText = `⏱️ ${tiempoRestante}`;
 
