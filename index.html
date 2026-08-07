@@ -215,19 +215,19 @@
 
         .click-target {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             cursor: pointer;
             transform: translate(-50%, -50%);
-            z-index: 100;
+            z-index: 10;
             background-color: rgba(0, 0, 0, 0);
         }
 
         .circulo-encontrado {
             position: absolute;
-            width: 55px;
-            height: 55px;
+            width: 30px;
+            height: 30px;
             border: 4px solid #2ecc71;
             background-color: rgba(46, 204, 113, 0.45);
             border-radius: 50%;
@@ -366,9 +366,9 @@
                 imagen: "img/nivel1.png", 
                 tiempo: 45,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "40%", left: "35%", encontrado: false },
-                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "20%", left: "70%", encontrado: false },
-                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "75%", left: "50%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "46%", left: "63%", encontrado: false },
+                    { id: "objeto1", nombre: "Llave", icono: "img/llave.png", top: "76%", left: "33%", encontrado: false },
+                    { id: "objeto2", nombre: "Valija", icono: "img/valija.png", top: "50%", left: "27%", encontrado: false }
                 ]
             },
             {
@@ -376,9 +376,9 @@
                 imagen: "img/nivel2.png", 
                 tiempo: 40,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "60%", left: "80%", encontrado: false },
-                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "30%", left: "20%", encontrado: false },
-                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "15%", left: "55%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "45%", left: "55%", encontrado: false },
+                    { id: "objeto1", nombre: "Arco", icono: "img/arco.png", top: "65%", left: "85%", encontrado: false },
+                    { id: "objeto2", nombre: "Almohada", icono: "img/almohada.png", top: "70%", left: "25%", encontrado: false }
                 ]
             },
             {
@@ -386,12 +386,13 @@
                 imagen: "img/nivel3.png", 
                 tiempo: 35,
                 objetos: [
-                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "15%", left: "45%", encontrado: false },
-                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "85%", left: "15%", encontrado: false },
-                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "50%", left: "65%", encontrado: false }
+                    { id: "howie", nombre: "Howie", icono: "img/howie.png", top: "80%", left: "88%", encontrado: false },
+                    { id: "objeto1", nombre: "Bici", icono: "img/bici.png", top: "28%", left: "29%", encontrado: false },
+                    { id: "objeto2", nombre: "Kayak", icono: "img/kayak.png", top: "38%", left: "76%", encontrado: false }
                 ]
             }
         ];
+
 
         let nivelActualIndex = 0;
         let tiempoRestante = 0;
