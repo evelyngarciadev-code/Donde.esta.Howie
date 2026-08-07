@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Buscando a Howie - Hotel Challenge</title>
-    <!-- Librería de Confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -26,7 +25,6 @@
             flex-direction: column;
         }
 
-        /* BARRA SUPERIOR FIJA Y COMPACTA */
         #marcador {
             height: 60px;
             background-color: #1e272e;
@@ -112,7 +110,6 @@
             opacity: 0.4;
         }
 
-        /* VISTA FLOTANTE DE LUPA */
         #lupa-preview {
             position: fixed;
             top: 75px;
@@ -144,7 +141,6 @@
             object-fit: contain;
         }
 
-        /* CONTENEDOR PRINCIPAL */
         #zona-juego {
             flex: 1;
             position: relative;
@@ -189,7 +185,6 @@
             z-index: 50;
         }
 
-        /* BOTONES DE ZOOM FLOTANTES */
         #controles-zoom {
             position: fixed;
             bottom: 20px;
@@ -218,7 +213,6 @@
 
         .btn-zoom:active { transform: scale(0.9); }
 
-        /* ÁREAS INVISIBLES DE BÚSQUEDA */
         .click-target {
             position: absolute;
             width: 60px;
@@ -230,7 +224,6 @@
             background-color: rgba(0, 0, 0, 0);
         }
 
-        /* CÍRCULO VERDE DE ENCONTRADO CON MARCA DE CHECK */
         .circulo-encontrado {
             position: absolute;
             width: 55px;
@@ -534,10 +527,8 @@
             if (obj && !obj.encontrado) {
                 obj.encontrado = true;
                 
-                // 1. Tacha arriba
                 document.getElementById(`ui-${id}`).classList.add("encontrado");
                 
-                // 2. Dibuja el círculo verde
                 let circulo = document.createElement("div");
                 circulo.className = "circulo-encontrado";
                 circulo.style.top = top;
