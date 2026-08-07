@@ -141,7 +141,7 @@
             object-fit: contain;
         }
 
-        /* ZONA DE SCROLL LIBRE */
+        /* ZONA DE SCROLL Y JUEGO */
         #zona-juego {
             flex: 1;
             position: relative;
@@ -156,7 +156,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
             width: max-content;
             height: max-content;
             margin: auto;
@@ -166,6 +166,8 @@
             position: relative;
             display: inline-block;
             line-height: 0;
+            width: 100%;
+            max-width: 100vw;
             transition: width 0.2s ease-out;
         }
 
@@ -173,6 +175,7 @@
             display: block;
             width: 100%;
             height: auto;
+            max-height: calc(100vh - 65px);
             border-radius: 4px;
         }
 
@@ -397,7 +400,6 @@
         let intervaloTimer = null;
         let juegoActivo = false;
         let escalaActual = 1;
-        let anchoBaseContenedor = 0;
 
         let animacionConfetiReq = null;
         let lanzandoConfeti = false;
@@ -418,24 +420,34 @@
         }
         precargarImagenes();
 
-        // CAMBIO CLAVE: Cambia el ancho físico del contenedor para estirar la caja de scroll
+        // CONTROL DE ZOOM FLUIDO Y SIN TRABAS
         function cambiarZoom(delta) {
             escalaActual += delta;
             if (escalaActual < 1) escalaActual = 1;
             if (escalaActual > 2.5) escalaActual = 2.5;
 
             const capa = document.getElementById("capa-interactiva");
-            if (anchoBaseContenedor === 0) {
-                anchoBaseContenedor = capa.clientWidth;
+            const imgFondo = document.getElementById("imagen-fondo");
+
+            if (escalaActual === 1) {
+                capa.style.width = "100%";
+                capa.style.maxWidth = "100vw";
+                imgFondo.style.maxHeight = "calc(100vh - 65px)";
+            } else {
+                capa.style.maxWidth = "none";
+                imgFondo.style.maxHeight = "none";
+                capa.style.width = (escalaActual * 100) + "vw";
             }
-            capa.style.width = (anchoBaseContenedor * escalaActual) + "px";
         }
 
         function resetearZoom() {
             escalaActual = 1;
             const capa = document.getElementById("capa-interactiva");
+            const imgFondo = document.getElementById("imagen-fondo");
+            
             capa.style.width = "100%";
-            anchoBaseContenedor = 0;
+            capa.style.maxWidth = "100vw";
+            imgFondo.style.maxHeight = "calc(100vh - 65px)";
         }
 
         function iniciarJuego() {
@@ -450,13 +462,7 @@
             datosNivel.objetos.forEach(obj => obj.encontrado = false);
 
             document.getElementById("nivel-actual").innerText = `${datosNivel.nivel}/3`;
-            
-            const imgFondo = document.getElementById("imagen-fondo");
-            imgFondo.src = datosNivel.imagen;
-            imgFondo.onload = () => {
-                const capa = document.getElementById("capa-interactiva");
-                anchoBaseContenedor = capa.clientWidth;
-            };
+            document.getElementById("imagen-fondo").src = datosNivel.imagen;
 
             tiempoRestante = datosNivel.tiempo;
             document.getElementById("timer").innerText = `⏱️ ${tiempoRestante}`;
